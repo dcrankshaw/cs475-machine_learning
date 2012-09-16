@@ -64,9 +64,18 @@ public class Classify {
 	
 
 	private static Predictor train(List<Instance> instances, String algorithm) {
-		// TODO Train the model using "algorithm" on "data"
 		// TODO Evaluate the model
-		return null;
+                Predictor predictor;
+                if (algorithm.equalsIgnoreCase("majority")) {
+                        predictor = new MajorityPredictor();
+                } else if (algorithm.equalsIgnoreCase("even_odd")) {
+                        predictor = new EvenOddPredictor();
+
+                } else {
+                        return null;
+                }
+                predictor.train(instances);
+                return predictor;
 	}
 
 	private static void evaluateAndSavePredictions(Predictor predictor,

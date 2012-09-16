@@ -4,14 +4,16 @@ import java.io.Serializable;
 
 public class RegressionLabel extends Label implements Serializable {
 
+        double label_;
+
 	public RegressionLabel(double label) {
-		// TODO Auto-generated constructor stub
+                label_ = label;
 	}
 
 	@Override
 	public String toString() {
-		// TODO Auto-generated method stub
-		return null;
+                return Double.toString(label_);
 	}
+
 
 }
