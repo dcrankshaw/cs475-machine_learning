@@ -75,16 +75,16 @@ public class Classify {
                 }
                 predictor.train(instances);
                 //Evaluate training data
-                double trainEvalutation = AccuracyEvaluator.evaluate(instances, predictor);
-                System.out.println("Training Evaluation: " + trainEvalutation);
+                double trainEvaluation = AccuracyEvaluator.evaluate(instances, predictor);
+                System.out.println("Training Evaluation: " + trainEvaluation);
                 return predictor;
 	}
 
 	private static void evaluateAndSavePredictions(Predictor predictor,
 			List<Instance> instances, String predictions_file) throws IOException {
 		PredictionsWriter writer = new PredictionsWriter(predictions_file);
-                double testEvalutation = AccuracyEvaluator.evaluate(instances, predictor);
-                System.out.println("Training Evaluation: " + trainEvalutation);
+                double testEvaluation = AccuracyEvaluator.evaluate(instances, predictor);
+                System.out.println("Training Evaluation: " + testEvaluation);
 		
 		for (Instance instance : instances) {
 			Label label = predictor.predict(instance);

@@ -2,8 +2,9 @@ package cs475;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.*;
 
-public class MajorityPredictor implements Serializable {
+public class MajorityPredictor extends Predictor implements Serializable {
         
         Label majorityLabel_ = null;
 
@@ -15,10 +16,10 @@ public class MajorityPredictor implements Serializable {
 
         // TODO what if instances.size() == 0??????
 	public void train(List<Instance> instances) {
-                HashMap<Label, int> labelCounts = new HashMap<Label,int>();
+                HashMap<Label, Integer> labelCounts = new HashMap<Label, Integer>();
                 for (Instance current : instances) {
                         Label currentLabel = current.getLabel();
-                        if (labelCounts.containsKey(currentLabel) {
+                        if (labelCounts.containsKey(currentLabel)) {
                                 labelCounts.put(currentLabel, labelCounts.get(currentLabel) + 1);
                         } else {
                                 labelCounts.put(currentLabel, 1);

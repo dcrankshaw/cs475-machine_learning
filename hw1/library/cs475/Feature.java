@@ -13,7 +13,13 @@ public class Feature implements Comparable<Feature>, Serializable {
         }
 
         public int compareTo(Feature other) {
-                return index_.compareTo(other.index_);
+                if (index_ < other.index_) {
+                        return -1;
+                } else if (index_ == other.index_) {
+                        return 0;
+                } else {
+                        return 1;
+                }
         }
 
 }

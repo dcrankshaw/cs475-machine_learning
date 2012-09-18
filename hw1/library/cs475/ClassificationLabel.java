@@ -13,7 +13,7 @@ public class ClassificationLabel extends Label implements Serializable {
 
 	@Override
 	public String toString() {
-		return Int.toString(label_);
+		return Integer.toString(label_);
 	}
 
 }

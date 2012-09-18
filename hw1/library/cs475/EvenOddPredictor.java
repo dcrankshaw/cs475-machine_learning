@@ -3,7 +3,7 @@ package cs475;
 import java.io.Serializable;
 import java.util.List;
 
-public abstract class Predictor implements Serializable {
+public class EvenOddPredictor extends Predictor implements Serializable {
 	private static final long serialVersionUID = 1L;
         
         Label label_ = null;
@@ -15,9 +15,9 @@ public abstract class Predictor implements Serializable {
                         FeatureVector features = current.getFeatureVector();
                         for (Feature currentFeature : features) {
                                 if (currentFeature.index_ % 2 == 0) {
-                                        evenSum += currentFeature.value;
+                                        evenSum += currentFeature.value_;
                                 } else {
-                                        oddSum += currentFeature.value;
+                                        oddSum += currentFeature.value_;
                                 }
                         }
                 }
