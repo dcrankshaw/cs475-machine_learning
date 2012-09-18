@@ -6,29 +6,31 @@ import java.io.Serializable;
 // NOTE All indices are 1-indexed
 public class FeatureVector implements Serializable, Iterable<Feature> {
 
-        private TreeSet<Feature> vector;
+        private TreeMap<int, Feature> vector;
+        private int maxIndex_;
         public FeatureVector() {
-                vector = new TreeSet<Feature>();
+                vector = new TreeMap<int, Feature>();
+                maxIndex_ = 0;
+        }
+
+        public int dimensionality() {
+                return maxIndex_;
         }
 
         public void add(int index, double value) {
-                int treeIndex = index - 1;
                 Feature newFeature = new Feature(index, double);
-                vector.add(newFeature);
+                vector.put(index, newFeature);
+                maxIndex_ = index > maxIndex_ ? index : maxIndex_;
         }
 
         public double get(int index) {
-                int treeIndex = index - 1;
-                return vector.get(treeIndex);
+                return vector.get(index);
         }
 
         public Iterator<Feature> iterator() {
-                return new Iterator<Feature> () {
-                        public
-
-                        public FeatureVector next()
-                }
+                return new FeatureVectorIterator();
         }
+
 
         private class FeatureVectorIterator implements Iterator<Feature> {
                 private Iterator<TreeMap> internalIterator;

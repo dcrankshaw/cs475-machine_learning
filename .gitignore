@@ -6,3 +6,4 @@
 *.ear
 
 */META-INF/*
+.*.swp

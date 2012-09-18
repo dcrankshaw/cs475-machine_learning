@@ -4,10 +4,12 @@ import java.io.Serializable;
 
 public class ClassificationLabel extends Label implements Serializable {
 
-        int label_;
+        private int label_;
 	public ClassificationLabel(int label) {
                 label_ = label;
 	}
+
+        public int getLabel() { return label_; }
 
 	@Override
 	public String toString() {

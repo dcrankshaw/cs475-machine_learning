@@ -64,7 +64,6 @@ public class Classify {
 	
 
 	private static Predictor train(List<Instance> instances, String algorithm) {
-		// TODO Evaluate the model
                 Predictor predictor;
                 if (algorithm.equalsIgnoreCase("majority")) {
                         predictor = new MajorityPredictor();
@@ -75,13 +74,17 @@ public class Classify {
                         return null;
                 }
                 predictor.train(instances);
+                //Evaluate training data
+                double trainEvalutation = AccuracyEvaluator.evaluate(instances, predictor);
+                System.out.println("Training Evaluation: " + trainEvalutation);
                 return predictor;
 	}
 
 	private static void evaluateAndSavePredictions(Predictor predictor,
 			List<Instance> instances, String predictions_file) throws IOException {
 		PredictionsWriter writer = new PredictionsWriter(predictions_file);
-		// TODO Evaluate the model if labels are available. 
+                double testEvalutation = AccuracyEvaluator.evaluate(instances, predictor);
+                System.out.println("Training Evaluation: " + trainEvalutation);
 		
 		for (Instance instance : instances) {
 			Label label = predictor.predict(instance);
