@@ -6,17 +6,15 @@ import java.io.Serializable;
 // NOTE All indices are 1-indexed
 public class FeatureVector implements Serializable, Iterable<Feature> {
 
-        TreeMap vector;
+        private TreeSet<Feature> vector;
         public FeatureVector() {
-                vector = new TreeMap();
+                vector = new TreeSet<Feature>();
         }
 
         public void add(int index, double value) {
                 int treeIndex = index - 1;
-                if (vector.containsKey(treeIndex)) {
-                        // TODO(crankshaw) error handling?
-                }
-                vector.put(treeIndex, value);
+                Feature newFeature = new Feature(index, double);
+                vector.add(newFeature);
         }
 
         public double get(int index) {
@@ -26,7 +24,7 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
 
         public Iterator<Feature> iterator() {
                 return new Iterator<Feature> () {
-                        public 
+                        public
 
                         public FeatureVector next()
                 }
