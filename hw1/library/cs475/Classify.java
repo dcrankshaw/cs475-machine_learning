@@ -69,7 +69,6 @@ public class Classify {
                         predictor = new MajorityPredictor();
                 } else if (algorithm.equalsIgnoreCase("even_odd")) {
                         predictor = new EvenOddPredictor();
-                        //System.out.println("Creating even odd predictor.");
 
                 } else {
                         System.out.println("No matching algorithm.");

@@ -10,3 +10,8 @@ __MACOSX
 
 */META-INF/*
 .*.swp
+
+# Latex files #
+*.aux
+*.log
+*.out

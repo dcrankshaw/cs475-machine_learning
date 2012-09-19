@@ -10,6 +10,10 @@ public class RegressionLabel extends Label implements Serializable {
                 label_ = label;
 	}
 
+        public double getLabel() {
+                return label_;
+        }
+
 	@Override
 	public String toString() {
                 return Double.toString(label_);

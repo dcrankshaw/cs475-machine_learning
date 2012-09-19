@@ -8,7 +8,7 @@ public class AccuracyEvaluator {
                 double numEvaluated = 0;
                 double numCorrect = 0;
                 if (instances.size() == 0 || predictor == null) {
-                        return -1;
+                        return 0;
                 }
                 for (Instance current : instances) {
                         Label prediction = predictor.predict(current);
@@ -20,6 +20,10 @@ public class AccuracyEvaluator {
                                 ++numEvaluated;
                         }
                 }
-                return (numCorrect/numEvaluated);
+                if (numEvaluated == 0) {
+                        return 0;
+                } else {
+                        return (numCorrect/numEvaluated);
+                }
         }
 }
