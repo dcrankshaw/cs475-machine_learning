@@ -71,6 +71,7 @@ public class Classify {
                         predictor = new EvenOddPredictor();
 
                 } else {
+                        System.out.println("No matching algorithm.");
                         return null;
                 }
                 predictor.train(instances);
@@ -84,7 +85,7 @@ public class Classify {
 			List<Instance> instances, String predictions_file) throws IOException {
 		PredictionsWriter writer = new PredictionsWriter(predictions_file);
                 double testEvaluation = AccuracyEvaluator.evaluate(instances, predictor);
-                System.out.println("Training Evaluation: " + testEvaluation);
+                System.out.println("Testing Evaluation: " + testEvaluation);
 		
 		for (Instance instance : instances) {
 			Label label = predictor.predict(instance);

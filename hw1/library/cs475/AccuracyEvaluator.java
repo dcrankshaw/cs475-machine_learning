@@ -7,7 +7,7 @@ public class AccuracyEvaluator {
         public static double evaluate(List<Instance> instances, Predictor predictor) {
                 double numEvaluated = 0;
                 double numCorrect = 0;
-                if (instances.size() == 0) {
+                if (instances.size() == 0 || predictor == null) {
                         return -1;
                 }
                 for (Instance current : instances) {
