@@ -4,6 +4,7 @@
 *.jar
 *.war
 *.ear
+__MACOSX
 
 */META-INF/*
 .*.swp
