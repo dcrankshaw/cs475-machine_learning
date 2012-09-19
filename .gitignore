@@ -1,7 +1,9 @@
 *.class
+model.*
+predictions.*
+._*
 
 # Package Files #
-*.jar
 *.war
 *.ear
 __MACOSX
