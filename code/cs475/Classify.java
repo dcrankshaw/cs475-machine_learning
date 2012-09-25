@@ -19,15 +19,19 @@ public class Classify {
 	
 	public static void main(String[] args) throws IOException {
 		// Parse the command line.
-		String[] manditory_args = { "mode"};
+		String[] mandatory_args = { "mode"};
 		createCommandLineOptions();
-		CommandLineUtilities.initCommandLineParameters(args, Classify.options, manditory_args);
+		CommandLineUtilities.initCommandLineParameters(args, Classify.options, mandatory_args);
 	
 		String mode = CommandLineUtilities.getOptionValue("mode");
 		String data = CommandLineUtilities.getOptionValue("data");
 		String predictions_file = CommandLineUtilities.getOptionValue("predictions_file");
 		String algorithm = CommandLineUtilities.getOptionValue("algorithm");
 		String model_file = CommandLineUtilities.getOptionValue("model_file");
+                int max_decision_tree_depth = 4;
+                if (CommandLineUtilities.hasArg("max_decision_tree_depth")) {
+                        max_decision_tree_depth = CommandLineUtilities.getOptionValueAsInt("max_decision_tree_depth");
+                }
 		
 		if (mode.equalsIgnoreCase("train")) {
 			if (data == null || algorithm == null || model_file == null) {
@@ -40,7 +44,7 @@ public class Classify {
 			data_reader.close();
 			
 			// Train the model.
-			Predictor predictor = train(instances, algorithm);
+			Predictor predictor = train(instances, algorithm, max_decision_tree_depth);
 			saveObject(predictor, model_file);		
 			
 		} else if (mode.equalsIgnoreCase("test")) {
@@ -61,15 +65,24 @@ public class Classify {
 			System.out.println("Requires mode argument.");
 		}
 	}
+
+        // for backwards compatibility - shouldn't ever get called
+	private static Predictor train(List<Instance> instances, String algorithm) {
+                return train(instances, algorithm, 0);
+        }
 	
 
-	private static Predictor train(List<Instance> instances, String algorithm) {
+	private static Predictor train(List<Instance> instances,
+                        String algorithm,
+                        int max_decision_tree_depth) {
                 Predictor predictor;
+                //TODO turn this into a case-switch statement
                 if (algorithm.equalsIgnoreCase("majority")) {
                         predictor = new MajorityPredictor();
                 } else if (algorithm.equalsIgnoreCase("even_odd")) {
                         predictor = new EvenOddPredictor();
-
+                } else if (algorithm.equalsIgnoreCase("decision_tree")) {
+                        predictor = new DecisionTreePredictor(max_decision_tree_depth);
                 } else {
                         System.out.println("No matching algorithm.");
                         return null;
@@ -144,7 +157,8 @@ public class Classify {
 		registerOption("predictions_file", "String", true, "The predictions file to create.");
 		registerOption("algorithm", "String", true, "The name of the algorithm for training.");
 		registerOption("model_file", "String", true, "The name of the model file to create/load.");
-		
+	        registerOption("max_decision_tree_depth", "int", true, "The maximum depth of the decision tree.");
+
 		// Other options will be added here.
 	}
 }

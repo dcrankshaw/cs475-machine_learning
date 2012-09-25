@@ -11,6 +11,8 @@ public class ClassificationLabel extends Label implements Serializable {
 
         public int getLabel() { return label_; }
 
+        public int compareTo(Label other);
+
 	@Override
 	public String toString() {
 		return Integer.toString(label_);
