@@ -15,6 +15,9 @@ public class DecisionTreeNode implements Serializable {
 
         public DecisionTreeNode(Label label) {
             isLeaf_ = true;
+            if (label == null) {
+              throw new IllegalArgumentException("Cannot create leaf with null labal");
+            }
             label_ = label;
         }
 

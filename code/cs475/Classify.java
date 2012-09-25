@@ -61,6 +61,9 @@ public class Classify {
 
             // Load the model.
             Predictor predictor = (Predictor)loadObject(model_file);
+            if(predictor == null) {
+              System.out.println("Null predictor.");
+            }
             evaluateAndSavePredictions(predictor, instances, predictions_file);
         } else {
             System.out.println("Requires mode argument.");
@@ -103,6 +106,9 @@ public class Classify {
 
         for (Instance instance : instances) {
             Label label = predictor.predict(instance);
+            if (label == null) {
+              System.out.println("Predicted null label.");
+            }
             writer.writePrediction(label);
         }
 

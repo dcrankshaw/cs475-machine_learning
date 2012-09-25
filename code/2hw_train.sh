@@ -5,9 +5,10 @@
 
 JAVA=`which java`
 
-EXTRA_FILES=~/cs475-machine_learning/hw1/01_all_extra_files_1/
-CLASSPATH=.:~/cs475-machine_learning/commons-cli-1.2/commons-cli-1.2.jar:$EXTRA_FILES/library.jar:~/cs475-machine_learning/hw1/library/bin/
+# EXTRA_FILES=~/cs475-machine_learning/hw1/01_all_extra_files_1/
+CLASSPATH=.:~/cs475-machine_learning/commons-cli-1.2/commons-cli-1.2.jar:~/cs475-machine_learning/code/bin
 
 $JAVA -cp $CLASSPATH cs475.Classify -mode train -algorithm $1 \
-  -model_file model.$1.$2 -data $EXTRA_FILES/$2.train
+  -model_file model.$1.$2 -data ~/cs475-machine_learning/hw2/data/$2.train \
+  -max_decision_tree_depth 4
 

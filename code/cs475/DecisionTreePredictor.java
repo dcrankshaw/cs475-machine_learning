@@ -14,6 +14,7 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
   public DecisionTreePredictor(int maxDepth) {
     maxDepth_ = maxDepth;
     root_ = null;
+    majorityLabel_ = null;
   }
 
   public void train(List<Instance> instances) throws IllegalArgumentException {
@@ -23,7 +24,8 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
     // Get majority label - tie goes to lowest indexed label
     // Can use a majority predictor here to get the majority label
     // Need to modify how majority predictor breaks ties though
-    MajorityPredictor majority = new MajorityPredictor(true);
+    //MajorityPredictor majority = new MajorityPredictor(true);
+    MajorityPredictor majority = new MajorityPredictor();
     majority.train(instances);
     majorityLabel_ = majority.getMajorityLabel();
     root_ = BuildDecisionTree(instances, new ArrayList<Integer>(), 0);
@@ -207,7 +209,7 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
 
   public Label predict(Instance instance) {
     if (root_ == null) {
-      return null;
+      throw new IllegalStateException("Cannot predict before training.");
     }
     return predictInternal(instance, root_);
   }

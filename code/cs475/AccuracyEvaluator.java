@@ -8,6 +8,9 @@ public class AccuracyEvaluator {
                 double numEvaluated = 0;
                 double numCorrect = 0;
                 if (instances.size() == 0 || predictor == null) {
+                  if (predictor == null) {
+                    System.out.println("Null Predictor");
+                  }
                         return 0;
                 }
                 for (Instance current : instances) {
