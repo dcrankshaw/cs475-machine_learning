@@ -11,7 +11,19 @@ public class ClassificationLabel extends Label implements Serializable {
 
         public int getLabel() { return label_; }
 
-        public int compareTo(Label other);
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof ClassificationLabel)) { return false; }
+            ClassificationLabel otherLabel = (ClassificationLabel) other;
+            return (otherLabel.getLabel() == label_);
+        }
+
+        @Override
+        public int hashCode() {
+            Integer labelInteger = new Integer(label_);
+            return labelInteger.hashCode();
+        }
 
 	@Override
 	public String toString() {

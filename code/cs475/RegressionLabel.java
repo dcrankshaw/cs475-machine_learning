@@ -19,5 +19,17 @@ public class RegressionLabel extends Label implements Serializable {
                 return Double.toString(label_);
 	}
 
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof RegressionLabel)) { return false; }
+            RegressionLabel otherLabel = (RegressionLabel) other;
+            return (otherLabel.getLabel() == label_);
+        }
+
+        @Override
+        public int hashCode() {
+            Double labelDouble = new Double(label_);
+            return labelDouble.hashCode();
+        }
 
 }

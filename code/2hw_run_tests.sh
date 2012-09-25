@@ -9,7 +9,7 @@
 #datasets[4]='nlp'
 #datasets[5]='speech'
 #datasets[6]='vision'
-datasets=( bio finance nlp speech vision easy hard )
+datasets=( bio finance nlp speech vision easy hard speech.mc )
 
 CLASSIFIER=$1
 TRAIN=./train.sh
