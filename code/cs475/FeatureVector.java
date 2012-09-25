@@ -25,7 +25,12 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
         }
 
         public double get(int index) {
-                return vector.get(index).value_;
+                Feature feature = vector.get(index);
+                if (feature == null) {
+                        return 0;
+                } else {
+                        return feature.value_;
+                }
         }
 
         public Iterator<Feature> iterator() {
