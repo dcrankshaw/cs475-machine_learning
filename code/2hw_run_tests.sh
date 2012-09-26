@@ -9,7 +9,7 @@
 #datasets[4]='nlp'
 #datasets[5]='speech'
 #datasets[6]='vision'
-datasets=( bio finance speech vision easy hard speech.mc )
+datasets=( bio finance nlp speech speech.mc vision easy hard )
 # datasets=(speech speech.mc )
 
 # CLASSIFIER=$1
@@ -21,9 +21,7 @@ for i in "${datasets[@]}"
 do
 #  echo "Train `${datasets[$i]}` : `$TRAIN $CLASSIFIER ${datasets[$i]}`"
 #  echo "Test `${datasets[$i]}` : `$TEST $CLASSIFIER ${datasets[$i]}`"
-  echo
   echo "Train $i : `$TRAIN $CLASSIFIER $i`"
-  echo
 #  echo "Test $i : `$TEST $CLASSIFIER $i`"
 done
 

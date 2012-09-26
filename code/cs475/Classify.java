@@ -92,10 +92,10 @@ public class Classify {
             return null;
         }
         predictor.train(instances);
-        if (predictor instanceof DecisionTreePredictor) {
-            DecisionTreePredictor printPredictor = (DecisionTreePredictor) predictor;
-            printPredictor.printTree();
-        }
+        //if (predictor instanceof DecisionTreePredictor) {
+        //    DecisionTreePredictor printPredictor = (DecisionTreePredictor) predictor;
+        //    printPredictor.printTree();
+        //}
         //Evaluate training data
         double trainEvaluation = AccuracyEvaluator.evaluate(instances, predictor);
         System.out.println("Training Evaluation: " + trainEvaluation);

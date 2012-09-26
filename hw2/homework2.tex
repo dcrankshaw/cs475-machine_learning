@@ -1,0 +1,228 @@
+\documentclass[11pt]{article}
+
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{url}
+\usepackage{wrapfig}
+\usepackage{hyperref} 
+\usepackage{color}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage{enumerate}
+\usepackage{amsmath,bm}
+\oddsidemargin 0mm
+\evensidemargin 5mm
+\topmargin -20mm
+\textheight 240mm
+\textwidth 160mm
+
+
+
+\newcommand{\vw}{{\bf w}}
+\newcommand{\vx}{{\bf x}}
+\newcommand{\vxi}{{\bf x}_i}
+\newcommand{\vxij}{{\bf x}_{ij}}
+\newcommand{\vt}{{\bf t}}
+\newcommand{\X}{{\mathbf X}}
+\newcommand{\Y}{{\bf Y}}
+\def\P{\mathbb{P}}
+\def\E{\mathbb{E}}
+\def\R{\mathbb{R}}
+\newcommand{\msigma}{{\bf \Sigma}}
+\newcommand{\vmu}{{\bf \mu}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\el}{\mathcal{L}}
+\newcommand{\code}[1]{{\footnotesize \tt #1}}
+\renewcommand{\baselinestretch}{1.2}
+\pagestyle{myheadings} 
+\markboth{Homework 2}{Fall 2012 CS 475 Machine Learning: Homework 2} 
+
+
+\title{CS 475 Machine Learning: Homework 2\\Probability, Linear Algebra and Decision Trees\\
+\Large{Due: Wednesday September 26, 2012, 12pm}\\
+100 Points Total \hspace{1cm} Version 1.0}
+
+\author{}
+\date{}
+
+\begin{document}
+\large
+\maketitle
+\thispagestyle{headings}
+
+\vspace{-.5in}
+\section{Programming (50 points)}
+Write a C4.5 decision tree trainer. This trainer must support both categorical (binary) features and continuous features.
+
+\paragraph{Binary features} You can determine binary features by examining features in the data that only appear with value $1$ or $0$.
+
+\paragraph{Continuous features}
+For continuous features, select the mean of the feature {\em at the split point}, meaning that the mean of a feature's value should be computed from the data being considered at the branch point in question, not the entire training data. As a result, the mean value for a feature may be different when building different nodes of the tree. Branch in one direction if a feature's value is \emph{less than or equal to} the mean and the other direction if the feature's value is \emph{greater than} the mean. Remember, for computing the mean value of a feature, examples in which the feature does not appear have value $0$ for that feature.
+
+Your algorithm does not need to support regression, tree pruning, or missing attributes. Each feature should be used at most one time \emph{per path} through the tree.
+
+Note that in the data provided there are only binary and continuous features. In general decision trees can support categorical features, whose values are a closed set. However, the data used in this homework has been preprocessed to include only binary and continuous features since these are more suited to the other types of classifiers you will implement in later assignments.
+
+You need to support both binary and multi-class classification problems. For this assignment, you are being given a new multi-class data set. See details
+about the data set below.
+
+C4.5 decision tree learning uses information gain. Recall that entropy is defined as:
+\[
+H(X) = -\sum_{i=1}^n p(x_i) \log p(x_i),
+\]
+conditional entropy:
+\[
+H(Y|X) =  - \sum_{i = 1}^m \sum_{j=1}^n p(y_i,x_j) \log \frac{p(y_i,x_j)}{p(x_j)}
+\]
+and information gain:
+\[
+IG(Y|X) = H(Y) - H(Y|X)
+\]
+
+Remember that $H(Y)$ is a constant when comparing $IG(Y|X)$ for different values of $X$ so it should be dropped for efficiency.
+
+\subsection{Base Cases}
+Recursion stops when you reach the base cases. We discussed base cases in the lecture, and you will use those in your implementation. We add a few details here.
+
+\paragraph{No further splits possible} This is when you have no way to split the data. There are no features left on which to split the data. Recall that you need to deal with the case where you have an uninformative split, where one branch gets no data. Have zero IG is not enough to stop learning. If you have no way to differentiate the data (no features remain) then return the majority label of the data at that node.
+
+\paragraph{No examples} If you reach a node that has no examples, return the majority label for all of the data.
+
+\paragraph{All labels agree} If all of the examples have the same label, there is no reason to continue splitting. Return the label.
+
+If you have a tie for the majority label, select the lowest indexed label. For example, if label 3 and label 9 are tied, select label 3.
+
+\subsection{Maximum Depth}
+Your training procedure for building the tree should stop either when you reach the base cases or when you reach a specified maximum depth. This parameter will be specified on the command line (see below.)
+
+The depth of a node in a tree is the total length of the path between that node and the root of the tree. A tree of only a single root node has a depth of 0. In a decision tree, each node contains either a feature test or a label. Therefore, a decision tree of depth 0 can only contain a single node, which must just be a label. A tree with a single feature test, which lead to a label on both subsequent nodes, has depth 1 since each leaf is one step away from the root.  
+
+When you are building a tree with maximum depth of n, you should stop when the current node you are building is n steps from the root. For this last node, you return the best label given the available data, which is the majority label for the data that reached that leaf node.
+
+\subsection{Data}
+To test the multi-class functionality of your decision tree, you are being provided with a new multi-class data set.
+The speech.mc dataset expands on the binary speech dataset to include all 26 letters of the English alphabet.
+
+
+\subsection{Command Line Options}
+You must add a command line flag to set the maximum depth of the learned tree. You can add this option by adding the following code block to the {\tt createCommandLineOptions} method of {\tt Classify}.
+\begin{footnotesize}
+\begin{verbatim}
+registerOption("max_decision_tree_depth", "int", true, "The maximum depth of the decision tree.");
+\end{verbatim}
+\end{footnotesize}
+
+Be sure to add the option name exactly as it appears above. A common mistake is to change underscores to dashes.
+
+You can read the value from the command line by adding the following to the main method of {\tt Classify}:
+\begin{footnotesize}
+\begin{verbatim}
+int max_decision_tree_depth = 4;
+if (CommandLineUtilities.hasArg("max_decision_tree_depth"))
+    max_decision_tree_depth = CommandLineUtilities.getOptionValueAsInt("max_decision_tree_depth");
+\end{verbatim}
+\end{footnotesize}
+
+
+For testing your code, you should use a maximum depth of 4. We will vary this parameter when grading your code.
+ 
+\subsection{Running Code}
+Your decision tree classifier should be selected by passing the string {\tt decision\_tree} as the argument for {\tt algorithm.} We will evaluate your algorithm by running the following commands:
+\begin{footnotesize}
+\begin{verbatim}
+java cs475.Classify -mode train -algorithm decision_tree -model_file speech.decision_tree.model \
+                     -data speech.train -max_decision_tree_depth 4
+\end{verbatim}
+\end{footnotesize}
+To run the trained model on development data:
+\begin{footnotesize}
+\begin{verbatim}
+java cs475.Classify -mode test -model_file speech.decision_tree.model -data speech.dev \
+                     -predictions_file speech.dev.decision_tree.predictions
+\end{verbatim}
+\end{footnotesize}
+
+Your trainer should finish in seconds, not several minutes, for each data set. If it takes you several minutes
+to train a decision tree, you have likely made an error. 
+
+\section{Analytical (50 points)}
+
+\paragraph{1) Basic Probability (8 points)}
+Probabilist are never tired of flipping a fair coin for the sole purpose of coming up with clever homework questions. Here are a few.
+\begin{enumerate}[(a)]
+\item What is the probability of getting all heads in 3 coin flips?
+\item What is the probability of getting at least 3 heads in 10 coin flips?
+\item How many flips on average does it take to get 3 heads in a row? This problem can be done by solving a simple linear equation with only one variable. Alternatively, you can write code to simulate the coin to solve the problem. Write your answer.
+\end{enumerate}
+
+
+\paragraph{2) Mixture Models (12 points)}
+
+Machine Learning often assumes that a probability distribution $\mathbb{P}(X)$ is a mixture model, that is, a probability distribution that is actually composed of other probability distributions. We call the composition a mixture. Each of these $k$ distributions that are mixed to form $\mathbb{P}(X)$ take the form
+$\mathbb{P}(X|C=j)$ where  $j = 1,...,k$ identifies the mixture distribution.  To mix the component distributions, we have a distribution over these components
+\begin{align}
+\mathbb{P}(C=j) = \pi_j,~\textrm{for}~j=1,...,k,
+\end{align}
+where $\pi_j \geq 0$ and $\sum_{j=1}^k\pi_j=1$.
+
+\begin{enumerate}[(a)]
+\item Write the probability distribution $\mathbb{P}(X)$ in terms of $\mathbb{P}(X|C)$ and $\mathbb{P}(C)$.
+\item If each component function is a univariate normal random variable, i.e.
+\begin{align}
+\mathbb{P}(X=x|C=j) = \frac{1}{\sigma_j\sqrt{2\pi}}\exp\left\{{-\frac{(x-\mu_j)^2}{2\sigma_j^2}}\right\}.
+\end{align}
+Write the expectation $\mathbb{E}(X)$ in terms of $\pi_i$'s, $\mu_j$'s and $\sigma_j$'s.
+\item Under the assumption of (b) and given $n$ observations, $x_1,x_2,...,x_n$, what is the log-likelihood function?
+%\item Is the likelihood in (c) concave? Is there any specific algorithm we can use to obtain the maximum likelihood estimation of $\mu_j's$ and $\sigma_j$'s.
+\end{enumerate}
+People build numerous mixture models to characterize the real wold data. Though these models are only approximations of underlying distributions, many of them work pretty well in practice.
+
+\begin{center}
+\fbox{``Essentially, all models are wrong, but some are useful." -- George Box.}
+\end{center}
+
+\paragraph{3) Linear Square and Overfitting. (10 points)}
+Statisticians love linear models because these models are very simple and interpretable. Many variants of linear models has been proposed, and most of them are formulated as (penalized) least squares program. Here we have three least squares programs,
+\begin{align}
+\hat{\beta}_0 = &\mathop{\rm argmin}_{\beta_0}  \|y-X_1\beta_0\|_2^2, \label{partial}\\
+(\hat{\beta}_1,\hat{\beta}_2) = &\mathop{\rm argmin}_{\beta_1,\beta_2}  \|y-X_1\beta_1-X_2\beta_2\|_2^2, \label{complete}\\
+\hat{\beta}_3 = &\mathop{\rm argmin}_{\beta_3} \|y-X_1\beta_3\|_2^2 +\lambda\|\beta_3\|_2^2 \label{ridge},
+\end{align}
+where $\lambda>0$, $y\in\mathbb{R}^n$, $X_1\in\mathbb{R}^{n \times d_1}$, and $X_2\in\mathbb{R}^{n \times d_1}$. \eqref{ridge} is well known as the ridge regression. The square norm acts as a penalty function to reduce overfitting. Prove
+\begin{align}\label{overfitting}
+\|y-X_1\hat{\beta}_3\|_2^2 \geq \|y-X_1\hat{\beta}_0\|_2^2 \geq \|y-X_1\hat{\beta}_1-X_2\hat{\beta}_2\|_2^2.
+\end{align}
+
+\paragraph{4) Decision Tree (10 points)} Let's investigate how accurately decisions trees can learn. We start by constructing a unit square ($[0; 1] \times [0;1]$). We select $n$ non-overlapping samples from the square, each with a binary label ($+1$ or $-1$.) Unlike the programming above, each feature can be used multiple times in a decision tree. At each node we can only conduct a binary threshold split using one single feature. 
+\begin{enumerate}[(a)]
+\item Prove that we can find a decision tree of depth at most $\log_2n$, which perfectly labels all $n$ samples. 
+\item If the samples are allowed to be overlapping, can we still learn a decision tree which perfectly labels all $n$ samples? Why or why not?
+\end{enumerate}
+
+
+\paragraph{5) Convex Optimization (10 points)}
+We often like to formulate machine learning problems as convex optimization problems. However, some problems can only be written as non-convex optimization problems.
+\begin{enumerate}[(a)]
+\item What is the advantage of the convex formulations?
+\item Given two convex functions.  $f(x)$ and $g(x)$, please prove that $f(x)+g(x)$ is a convex function. (Hint: You may find it helpful to use the definition of convexity. Do not use gradient or Hessian, since $f$ and $g$ may not have them.)
+\item While $f(x)+g(x)$ is convex for convex function $f(x)$ and $g(x)$, $f(x)-g(x)$ is not necessarily a convex function. Give an example of functions $f(x)$ and $g(x)$ whose difference results in a convex function, and functions $f'(x)$ and $g'(x)$ whose difference is non-convex.
+\end{enumerate}
+
+
+
+\section{What to Submit}
+In each assignment you will submit two things.
+\begin{enumerate}
+\item {\bf Code:} Your code as a zip file named {\tt library.zip}. {\bf You must submit source code (.java files)}. We will run your code using the exact command lines described above, so make sure it works ahead of time. Remember to submit all of the source code, including what we have provided to you.
+\item {\bf Writeup:} Your writeup as a {\bf PDF file} (compiled from latex) containing answers to the analytical questions asked in the assignment. Use the provided tex file for writing your answers.
+\end{enumerate}
+Make sure you name each of the files exactly as specified (library.zip and writeup.pdf).
+
+To submit your assignment, visit the ``Homework'' section of the website (\href{http://www.cs475.org/}{http://www.cs475.org/}.)
+
+\section{Questions?}
+Remember to submit questions about the assignment to the appropriate group on the class discussion board: \href{http://bb.cs475.org/}{http://bb.cs475.org}.
+
+\end{document}
+
