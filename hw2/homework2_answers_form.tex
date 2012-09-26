@@ -1,6 +1,5 @@
 \documentclass[letterpaper,11pt]{article}
 \title{CS475 Machine Learning, Fall 2012: Homework 2}
-\date{}
 \author{\bf Daniel Crankshaw - dcranks1}
 
 
@@ -25,7 +24,11 @@
 \usepackage{enumerate}
 \usepackage{amsmath,bm}
 \usepackage{fullpage}
-    
+
+\def\P{\mathbb{P}}
+\def\E{\mathbb{E}}
+\def\R{\mathbb{R}}
+
 \renewcommand{\baselinestretch}{1.15}    
 
 \begin{document}
@@ -47,25 +50,78 @@ tosses. $P(H \geq 3) = \sum\limits_{i=3}^{10} P(H=i) = \sum\limits_{i=3}^{10} \b
 \begin{enumerate}[(a)]
 \item
 \begin{align}
-\mathbb{P}(X) & = \sum\limits_{j=1}^k \mathbb{P}(X|C=j) \mathbb{P}(C=j)$//
-& = 
+\mathbb{P}(X) & = \sum\limits_{j=1}^k \mathbb{P}(X|C=j) \mathbb{P}(C=j)
+\end{align}
 \item
+  \begin{align}
+    \E(X) & = \E[\E(X | C)]\\
+          & = \sum\limits_{j=1}^k \E(X | C=j) \P(C=j)\\
+          & = \sum\limits_{j=1}^k \mu_j \pi_j
+\end{align}
 \item
+  \begin{align}
+  log (\P{D |\mu_j, \sigma_j for j=1,\ldots,k}) & = \sum\limits_{i=1}^{n} log(\P(x_n | \mu_j, \sigma_j))\\
+                                                & = \sum\limits_{i=1}^n log \left\(\sum\limits_{j=1}^k \P(X=x_i|C=j) \P(C=j) \right\)\\
+                                                & = \sum\limits_{i=1}^n log\left[\sum\limits_{j=1}^k \pi_j \frac{1}{\sigma_j\sqrt{2\pi}}\exp\left\{{-\frac{(x_i-\mu_j)^2}{2\sigma_j^2}}\right\} \right]\\
+  \end{align}
+
 \end{enumerate}
 
 \paragraph{Question 3:}
+First I will prove the first part of the set of inequalities, and then the second part.
+For
+\begin{equation}
+  \|y-X_1\hat{\beta}_3\|_2^2 \geq \|y-X_1\hat{\beta}_0\|_2^2
+\end{equation}
+Assume that $\|y-X_1\hat{\beta}_3\|_2^2 < \|y-X_1\hat{\beta}_0\|_2^2$. Then there exists some $\beta_0' = \hat{\beta}_3$ 
+such that $\|y-X_1\beta_0'\|_2^2 < \|y-X_1\hat{\beta}_0\|_2^2$. Thus, $\hat{\beta}_0$ is not the argmin. But $\hat{\beta}_0$
+is the argmin, and so we have reached a contradiction. Therefore, $\|y-X_1\hat{\beta}_3\|_2^2 \geq \|y-X_1\hat{\beta}_0\|_2^2$.
+
+
+\begin{equation}
+  \|y-X_1\hat{\beta}_0\|_2^2 \geq \|y-X_1\hat{\beta}_1-X_2\hat{\beta}_2\|_2^2
+\end{equation}
+Notice that $\mathop{\rm argmax}_{\beta_0} X_1\beta_0 \geq \textbf{0}$ (where $\textbf{0}$ is the n-dimensional null vector). Similarly,
+$\mathop{\rm argmax}_{\beta_1} X_1\beta_1 \geq \textbf{0}$ and $\mathop{\rm argmax}_{\beta_2} X_2\beta_2 \geq \textbf{0}$.
+And because we are subtracting each of these quantities from $y$, no matter what $X_1\hat{\beta}_0$ is, we can always get the same value
+from $X_1\hat{\beta}_1$. And because $\mathop{\rm argmax}_{\beta_2} X_2\hat{\beta}_2 \geq \textbf{0}$ then we either have
+$X_2\hat{\beta}_2 = \textbf{0}$ in which case the two expressions are equal, or 
+$X_2\hat{\beta}_2 > \textbf{0}$ in which case the $\|y-X_1\hat{\beta}_0\|_2^2 > \|y-X_1\hat{\beta}_1-X_2\hat{\beta}_2\|_2^2$. Thus the inequality
+holds true.
 
 \paragraph{Question 4:}
 \begin{enumerate}[(a)]
-\item
-\item
+\item With non-overlapping samples, in the worst case every split exactly divides the data in half. If we divide the data in half
+  at every split, then each sample needs $log_2 n$ splits to be labeled. Because the samples are non-overlapping, there will never
+  be a split that contains data with the same set of features with different labels. Thus, we can always perform a series of feature
+  splits that will result in a node in the decision tree with all the labels agreeing. Therefore, we can perform a perfect labeling.
+  Therefore, in this situation, we can always perform a perfect labeling of all $n$ samples with a decision tree of depth at most
+  $log_2 n$.
+\item We cannot. If we lose the assumption that all labels are non-overlapping, then we can have a situation where we have at
+  least two samples with the exact same feature vector that have different labels. This situation means that even after $log_2 n$
+  feature splits (isolating all samples with this feature vector from any with distinct feature vectors) we will have a set
+  of data at a node which do not all have the same label. Therefore, we cannot perfectly label the data.
 \end{enumerate}
 
 \paragraph{Question 5:}
 \begin{enumerate}[(a)]
+\item Convex formulations have exactly one minimum, meaning that the global minimum is also the only local minimum. This makes
+  it much easier to find the minimum of the function.
 \item
-\item
-\item
+  The definition of convexity is as follows. A function $f(x)$ is convex if for any two points $x_1$, $x_2$ in $X$ and $t \in [0,1]$
+  \begin{equation}
+    f(t x_1 + (1 - t) x_2) \leq t f(x_1) + (1-t) f(x_2)
+  \end{equation}
+  \begin{align}
+    h(x) & = f(x) + g(x)\\
+    h(t x_1 + (1 - t) x_2) & = f(t x_1 + (1 - t) x_2) + g(t x_1 + (1 - t) x_2)\\
+    h(t x_1 + (1 - t) x_2) & \leq t f(x_1) + t g(x_1) + (1-t)f(x_2) + (1-t) g(x)2 & (\text{by the definition of convexity})\\
+                           & = t(f(x_1) + g(x_1)) + (1-t)(f(x_2) + g(x_2))\\
+                           & = th(x_1) + (1-t)h(x_2)
+  \end{align}
+  Therefore, $h(t x_1 + (1 - t) x_2) \leq th(x_1) + (1-t)h(x_2)$ and thus satisfies the definition of a convex function.
+\item $f'(x) = x^4$ and $g'(x) = x^2$ results in the a non-convex function $f'(x) - g'(x)$.\\
+  $f(x) = e^x$ and $g(x) = 2^x$ results in a convex function $f(x) - g(x)$.
 \end{enumerate}
 
 \end{document}
