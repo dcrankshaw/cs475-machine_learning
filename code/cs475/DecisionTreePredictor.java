@@ -22,9 +22,6 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
             throw new IllegalArgumentException("Cannot provide an empty set of training data.");
         }
         // Get majority label - tie goes to lowest indexed label
-        // Can use a majority predictor here to get the majority label
-        // Need to modify how majority predictor breaks ties though
-        //MajorityPredictor majority = new MajorityPredictor(true);
         MajorityPredictor majority = new MajorityPredictor(true);
         majority.train(instances);
         majorityLabel_ = majority.getMajorityLabel();
@@ -41,7 +38,6 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
         // No Examples Base Case
         if (data.size() == 0) {
             //return node with majority label
-            //System.out.println("Base case no data: labeling with: " + majorityLabel_);
             return new DecisionTreeNode(majorityLabel_);
         } else {
             boolean splitsPossible = false;
@@ -53,10 +49,8 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
             }
             // No Further Splits Possible base case
             if (!splitsPossible) {
-                //return majorityLabelFORDATAATNODE - tie goes to lowest indexed label
                 MajorityPredictor majority = new MajorityPredictor(true);
                 majority.train(data);
-                //System.out.println("Base case no splits: labeling with: " + majority.getMajorityLabel());
 
                 return new DecisionTreeNode(majority.getMajorityLabel());
             }
@@ -64,24 +58,18 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
             // All Labels Agree base case
             if (possibleLabels.size() == 1) {
                 Label onlyLabel = (Label) possibleLabels.toArray()[0];
-                //System.out.println("Base case all labels agree: labeling with: " + onlyLabel);
                 return new DecisionTreeNode(onlyLabel);
             }
 
+            // Max depth base case
             if (depth == maxDepth_) {
-                //return majorityLabelFORDATAATNODE - tie goes to lowest indexed label
                 MajorityPredictor majority = new MajorityPredictor(true);
                 majority.train(data);
-                //System.out.println("Base case max depth: labeling with: " + majority.getMajorityLabel());
                 return new DecisionTreeNode(majority.getMajorityLabel());
             }
 
             // At this point all base cases have been handled,
-            // We now need to generate the probability distributions
-            //      - P(X)
-            //      - P(Y|X)
 
-            //Create P(X)
             int maxFeatureIndex = getMaxFeatureIndex(data);
             int maxIGFeature = -1;
             double maxIGFeatureValueMean = 0;
@@ -91,25 +79,14 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
                 if (usedFeatures.contains(feature)) {
                     continue;
                 }
-                //boolean binaryFeature = true;
                 double valuesSum = 0;
                 for (Instance currentInstance : data) {
                     double featureValue = currentInstance.getFeatureVector().get(feature);
                     valuesSum += featureValue;
-                    //if (binaryFeature && (featureValue != 1) && (featureValue != 0)) {
-                    //  binaryFeature = false;
-                    //}
                 }
                 double meanFeatureValue;
-                //if (binaryFeature) {
-                //  meanFeatureValue = 0;
-                //} else {
                 meanFeatureValue = valuesSum / (double) data.size();
-                //}
                 double entropy = getConditionalEntropy(feature, data, meanFeatureValue, possibleLabels);
-                //        System.out.println("feature: " + feature
-                //                            + " entropy: " + entropy
-                //                            + " depth: " + depth);
 
                 if (entropy < minCondEntropy) {
                     minCondEntropy = entropy;
@@ -193,53 +170,6 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
                 double PYandX1 = ((double) oneAndProbs.get(yi)) / ((double) data.size());
                 entropy += PYandX1 * Math.log(PYandX1 / PX1) / Math.log(2);
             }
-
-            //for (Instance examineInstance : data) {
-            //    double examineFeatureValue = examineInstance.getFeatureVector().get(featureIndex);
-            //    if (examineInstance.getLabel() == jj.getLabel()) {
-            //        if ((featureValue <= mean && examineFeatureValue <= mean) ||
-            //            (featureValue > mean && examineFeatureValue > mean)) {
-            //            numMatches += 1;
-            //        }
-            //    }
-
-            //}
-            //double PYandX = numMatches / (double) data.size();
-            //if (featureValue <= mean && num0 != 0) {
-            //    entropy += PYandX * Math.log(PYandX / PX0) / Math.log(2);
-            //} else if (featureValue > mean && num1 != 0) {
-            //    entropy += PYandX * Math.log(PYandX / PX1) / Math.log(2);
-            //}
-
-            //////////////////////////////////////////////
-            //List<Instance> labelsToCheck;
-            //if (featureValue > mean) {
-            //  labelsToCheck = oneInstances;
-            //} else {
-            //  labelsToCheck = zeroInstances;
-            //}
-            //double numCurrentLabel = 0;
-            //for (Instance checkLabelInstance : labelsToCheck) {
-            //  if (checkLabelInstance.getLabel().equals(yi)) {
-            //    ++numCurrentLabel;
-            //  }
-            //}
-            //double PYiGivenXj;
-            //if (labelsToCheck.size() > 0) {
-            //  PYiGivenXj = numCurrentLabel / labelsToCheck.size();
-            //} else {
-            //  PYiGivenXj = 0;
-            //}
-            //double PYiAndXj;
-            //if (featureValue > mean) {
-            //  PYiAndXj = PYiGivenXj * PX1;
-            //} else {
-            //  PYiAndXj = PYiGivenXj * PX0;
-            //}
-            //double additionalEntropy = PYiAndXj * Math.log(PYiGivenXj) / Math.log(2);
-            //entropy += additionalEntropy;
-            /////////////////////////////////////////////////
-
         }
         entropy = entropy * -1;
         return entropy;

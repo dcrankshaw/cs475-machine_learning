@@ -55,17 +55,6 @@ public class DecisionTreeNode implements Serializable {
           }
         }
 
-//        public void setLeftChild(DecisionTreeNode child) {
-//            if (!isLeaf) {
-//                leftChild_ = child;
-//            }
-//        }
-//
-//        public void setRightChild(DecisionTreeNode child) {
-//            if (!isLeaf) {
-//                rightChild_ = child;
-//            }
-//        }
 
         /**
           * Takes a FeatureVector and evaluates the feature test
@@ -93,12 +82,4 @@ public class DecisionTreeNode implements Serializable {
                 return null;
             }
         }
-
-
-        //Figure out how to encapsulate a feature test
-        // A feature test is constructed with a feature index, a threshhold value,
-        // and two DecisionTreeNodes (the left and right children). It evaluates the
-        // test based on being given a FeatureVector and returns the corresponding node.
-
-
 }
