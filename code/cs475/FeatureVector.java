@@ -21,7 +21,9 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
         public void add(int index, double value) {
                 Feature newFeature = new Feature(index, value);
                 vector.put(index, newFeature);
-                maxIndex_ = index > maxIndex_ ? index : maxIndex_;
+                if (index > maxIndex_) {
+                    maxIndex_ = index;
+                }
         }
 
         public double get(int index) {

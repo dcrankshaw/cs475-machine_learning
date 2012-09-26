@@ -21,7 +21,9 @@ for i in "${datasets[@]}"
 do
 #  echo "Train `${datasets[$i]}` : `$TRAIN $CLASSIFIER ${datasets[$i]}`"
 #  echo "Test `${datasets[$i]}` : `$TEST $CLASSIFIER ${datasets[$i]}`"
+  echo
   echo "Train $i : `$TRAIN $CLASSIFIER $i`"
+  echo
 #  echo "Test $i : `$TEST $CLASSIFIER $i`"
 done
 
