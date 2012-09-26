@@ -25,7 +25,7 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
     // Can use a majority predictor here to get the majority label
     // Need to modify how majority predictor breaks ties though
     //MajorityPredictor majority = new MajorityPredictor(true);
-    MajorityPredictor majority = new MajorityPredictor();
+    MajorityPredictor majority = new MajorityPredictor(true);
     majority.train(instances);
     majorityLabel_ = majority.getMajorityLabel();
     root_ = BuildDecisionTree(instances, new ArrayList<Integer>(), 0);
@@ -138,7 +138,7 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
     }
   }
 
-  private double getConditionalEntropy(int featureIndex,
+  private static double getConditionalEntropy(int featureIndex,
       List<Instance> data,
       double mean,
       Set<Label> possibleLabels) {
@@ -172,7 +172,12 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
             ++numCurrentLabel;
           }
         }
-        double PYiGivenXj = numCurrentLabel / labelsToCheck.size();
+        double PYiGivenXj;
+        if (labelsToCheck.size() > 0) {
+          PYiGivenXj = numCurrentLabel / labelsToCheck.size();
+        } else {
+          PYiGivenXj = 0;
+        }
         double PYiAndXj;
         if (featureValue > mean) {
           PYiAndXj = PYiGivenXj * PX1;
@@ -197,7 +202,8 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
     return maxIndex;
   }
 
-  private Set<Label> labels(List<Instance> instances) {
+  //private Set<Label> labels(List<Instance> instances) {
+  public static Set<Label> labels(List<Instance> instances) {
     Set<Label> labels = new HashSet<Label>();
     // make sure that we override Equals, Hashcode for Label subclasses so that we
     // are getting the right comparisons for Set.add()
@@ -224,5 +230,31 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
       DecisionTreeNode nextNode = currentNode.getNextNode(instance.getFeatureVector());
       return predictInternal(instance, nextNode);
     }
+  }
+
+  public void printTree() {}
+
+  public static void main(String[] args) {
+    //DecisionTreePredictor predictor = new DecisionTreePredictor(4);
+    ArrayList<Instance> testInstances = new ArrayList<Instance>();
+    ArrayList<Label> testLabels = new ArrayList<Label>();
+    for (int i = 1; i < 5; ++i) {
+      testLabels.add(new ClassificationLabel(i));
+      testInstances.add(new Instance(new FeatureVector(), new ClassificationLabel(i)));
+    }
+      testInstances.add(new Instance(new FeatureVector(), new ClassificationLabel(4)));
+
+    Set<Label> allLabels = labels(testInstances);
+    assert(allLabels.size() == 4) : "Found " + allLabels.size() + " distinct labels";
+    if (allLabels.size() == 4) {
+      System.out.println("right number of labels");
+      for(Label label : allLabels) {
+        System.out.println(label);
+      }
+    }
+
+
+
+  
   }
 }

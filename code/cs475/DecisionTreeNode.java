@@ -5,13 +5,14 @@ import java.io.Serializable;
 
 
 public class DecisionTreeNode implements Serializable {
-        
+
         private Label label_;
         public boolean isLeaf_;
         private int featureIndex_;
         private double threshholdValue_;
         public DecisionTreeNode leftChild_;
         public DecisionTreeNode rightChild_;
+        public String debugInfo_;
 
         public DecisionTreeNode(Label label) {
             isLeaf_ = true;
@@ -30,6 +31,18 @@ public class DecisionTreeNode implements Serializable {
             rightChild_ = rightChild;
             featureIndex_ = featureIndex;
             threshholdValue_ = threshholdValue;
+        }
+
+        public void addDebugInfo(String info) {
+          debugInfo_ = info;
+        }
+
+        public String toString() {
+          if (isLeaf_) {
+            return new String("Label: " + label_ + " " + debugInfo_);
+          } else {
+            return new String("featureIndex: " + featureIndex_ + " threshold: " + threshholdValue_ + " " + debugInfo_);
+          }
         }
 
 //        public void setLeftChild(DecisionTreeNode child) {
@@ -72,7 +85,6 @@ public class DecisionTreeNode implements Serializable {
         }
 
 
-        
         //Figure out how to encapsulate a feature test
         // A feature test is constructed with a feature index, a threshhold value,
         // and two DecisionTreeNodes (the left and right children). It evaluates the
