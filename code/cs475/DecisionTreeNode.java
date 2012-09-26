@@ -37,11 +37,21 @@ public class DecisionTreeNode implements Serializable {
           debugInfo_ = info;
         }
 
+        public DecisionTreeNode getLeftChild() {
+            return leftChild_;
+        }
+
+        public DecisionTreeNode getRightChild() {
+            return rightChild_;
+        }
+
         public String toString() {
           if (isLeaf_) {
-            return new String("Label: " + label_ + " " + debugInfo_);
+            return new String("Label: " + label_);
           } else {
-            return new String("featureIndex: " + featureIndex_ + " threshold: " + threshholdValue_ + " " + debugInfo_);
+            return new String("featureIndex: " + featureIndex_
+                            + " threshold: " + threshholdValue_
+                            + " " + debugInfo_);
           }
         }
 

@@ -88,21 +88,21 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
         if (usedFeatures.contains(feature)) {
           continue;
         }
-        boolean binaryFeature = true;
+        //boolean binaryFeature = true;
         double valuesSum = 0;
         for (Instance currentInstance : data) {
           double featureValue = currentInstance.getFeatureVector().get(feature);
           valuesSum += featureValue;
-          if (binaryFeature && (featureValue != 1) && (featureValue != 0)) {
-            binaryFeature = false;
-          }
+          //if (binaryFeature && (featureValue != 1) && (featureValue != 0)) {
+          //  binaryFeature = false;
+          //}
         }
         double meanFeatureValue;
-        if (binaryFeature) {
-          meanFeatureValue = 0;
-        } else {
+        //if (binaryFeature) {
+        //  meanFeatureValue = 0;
+        //} else {
           meanFeatureValue = valuesSum / (double) data.size();
-        }
+        //}
         double entropy = getConditionalEntropy(feature, data, meanFeatureValue, possibleLabels);
 
         if (entropy < minCondEntropy) {
@@ -132,6 +132,11 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
           maxIGFeatureValueMean,
           left,
           right);
+      String debugInfo = "entropy: " + minCondEntropy
+                       + " feature: " + maxIGFeature
+                       + " split: " + maxIGFeatureValueMean;
+
+      thisNode.addDebugInfo(debugInfo);
       return thisNode;
 
 
@@ -144,49 +149,98 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
       Set<Label> possibleLabels) {
     List<Instance> zeroInstances = new ArrayList<Instance>();
     List<Instance> oneInstances = new ArrayList<Instance>();
+    Map<Label, Integer> zeroAndProbs = new HashMap<Label, Integer>();
+    Map<Label, Integer> oneAndProbs = new HashMap<Label, Integer>();
     for (Instance current : data) {
       double featureValue = current.getFeatureVector().get(featureIndex);
       if (featureValue > mean) {
         oneInstances.add(current);
+        Integer count = oneAndProbs.get(current.getLabel());
+        if(count == null) {
+            oneAndProbs.put(current.getLabel(), 1);
+        } else {
+            oneAndProbs.put(current.getLabel(), count + 1);
+        }
+
       } else {
         zeroInstances.add(current);
+        Integer count = zeroAndProbs.get(current.getLabel());
+        if(count == null) {
+            zeroAndProbs.put(current.getLabel(), 1);
+        } else {
+            zeroAndProbs.put(current.getLabel(), count + 1);
+        }
       }
     }
     double num0 = zeroInstances.size();
     double num1 = oneInstances.size();
-    double PX0 = num0 / (double) data.size();
-    double PX1 = num1 / (double) data.size();
+    double PX0 = num0 / ((double) data.size());
+    double PX1 = num1 / ((double) data.size());
     double entropy = 0;
     for (Label yi : possibleLabels) {
       for (Instance jj : data) {
+        double numMatches = 0;
         double featureValue = jj.getFeatureVector().get(featureIndex);
-        List<Instance> labelsToCheck;
-        if (featureValue > mean) {
-          labelsToCheck = oneInstances;
-        } else {
-          labelsToCheck = zeroInstances;
+        double PYandX = 0;
+        if (featureValue > mean && num1 != 0) {
+            PYandX = ((double) oneAndProbs.get(jj.getLabel())) / ((double) data.size());
+            entropy += PYandX * Math.log(PYandX / PX1) / Math.log(2);
+        } else if (featureValue <= mean && num0 != 0) {
+            PYandX = ((double) zeroAndProbs.get(jj.getLabel())) / ((double) data.size());
+            entropy += PYandX * Math.log(PYandX / PX0) / Math.log(2);
         }
-        double numCurrentLabel = 0;
-        for (Instance checkLabelInstance : labelsToCheck) {
-          if (checkLabelInstance.getLabel().equals(yi)) {
-            ++numCurrentLabel;
-          }
-        }
-        double PYiGivenXj;
-        if (labelsToCheck.size() > 0) {
-          PYiGivenXj = numCurrentLabel / labelsToCheck.size();
-        } else {
-          PYiGivenXj = 0;
-        }
-        double PYiAndXj;
-        if (featureValue > mean) {
-          PYiAndXj = PYiGivenXj * PX1;
-        } else {
-          PYiAndXj = PYiGivenXj * PX0;
-        }
-        double additionalEntropy = PYiAndXj * Math.log(PYiGivenXj) / Math.log(2);
-        entropy += additionalEntropy;
       }
+        
+
+
+
+
+        //for (Instance examineInstance : data) {
+        //    double examineFeatureValue = examineInstance.getFeatureVector().get(featureIndex);
+        //    if (examineInstance.getLabel() == jj.getLabel()) {
+        //        if ((featureValue <= mean && examineFeatureValue <= mean) ||
+        //            (featureValue > mean && examineFeatureValue > mean)) {
+        //            numMatches += 1;
+        //        }
+        //    }
+
+        //}
+        //double PYandX = numMatches / (double) data.size();
+        //if (featureValue <= mean && num0 != 0) {
+        //    entropy += PYandX * Math.log(PYandX / PX0) / Math.log(2);
+        //} else if (featureValue > mean && num1 != 0) {
+        //    entropy += PYandX * Math.log(PYandX / PX1) / Math.log(2);
+        //}
+
+        //////////////////////////////////////////////
+        //List<Instance> labelsToCheck;
+        //if (featureValue > mean) {
+        //  labelsToCheck = oneInstances;
+        //} else {
+        //  labelsToCheck = zeroInstances;
+        //}
+        //double numCurrentLabel = 0;
+        //for (Instance checkLabelInstance : labelsToCheck) {
+        //  if (checkLabelInstance.getLabel().equals(yi)) {
+        //    ++numCurrentLabel;
+        //  }
+        //}
+        //double PYiGivenXj;
+        //if (labelsToCheck.size() > 0) {
+        //  PYiGivenXj = numCurrentLabel / labelsToCheck.size();
+        //} else {
+        //  PYiGivenXj = 0;
+        //}
+        //double PYiAndXj;
+        //if (featureValue > mean) {
+        //  PYiAndXj = PYiGivenXj * PX1;
+        //} else {
+        //  PYiAndXj = PYiGivenXj * PX0;
+        //}
+        //double additionalEntropy = PYiAndXj * Math.log(PYiGivenXj) / Math.log(2);
+        //entropy += additionalEntropy;
+        /////////////////////////////////////////////////
+      
     }
     entropy = entropy * -1;
     return entropy;
@@ -232,7 +286,19 @@ public class DecisionTreePredictor extends Predictor implements Serializable {
     }
   }
 
-  public void printTree() {}
+  public void printTree() {
+      printTreeInternal(root_);
+  }
+
+  private void printTreeInternal(DecisionTreeNode node) {
+    if (node.isLeaf()) {
+        System.out.println(node.toString());
+    } else {
+        printTreeInternal(node.getLeftChild());
+        System.out.println(node.toString());
+        printTreeInternal(node.getRightChild());
+    }
+  }
 
   public static void main(String[] args) {
     //DecisionTreePredictor predictor = new DecisionTreePredictor(4);
