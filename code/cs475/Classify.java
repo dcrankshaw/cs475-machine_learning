@@ -17,6 +17,8 @@ import org.apache.commons.cli.OptionBuilder;
 
 public class Classify {
     static public LinkedList<Option> options = new LinkedList<Option>();
+    public static int max_decision_tree_depth = 4;
+    public static double lambda = 1.0;
 
     public static void main(String[] args) throws IOException {
         // Parse the command line.
@@ -29,10 +31,13 @@ public class Classify {
         String predictions_file = CommandLineUtilities.getOptionValue("predictions_file");
         String algorithm = CommandLineUtilities.getOptionValue("algorithm");
         String model_file = CommandLineUtilities.getOptionValue("model_file");
-        int max_decision_tree_depth = 4;
         if (CommandLineUtilities.hasArg("max_decision_tree_depth")) {
             max_decision_tree_depth = CommandLineUtilities.getOptionValueAsInt("max_decision_tree_depth");
         }
+        if (CommandLineUtilities.hasArg("lambda")) {
+            lambda = CommandLineUtilities.getOptionValueAsFloat("lambda");
+        }
+
 
         if (mode.equalsIgnoreCase("train")) {
             if (data == null || algorithm == null || model_file == null) {
@@ -70,32 +75,22 @@ public class Classify {
         }
     }
 
-    // for backwards compatibility - shouldn't ever get called
     private static Predictor train(List<Instance> instances, String algorithm) {
-        return train(instances, algorithm, 0);
-    }
-
-
-    private static Predictor train(List<Instance> instances,
-            String algorithm,
-            int max_decision_tree_depth) {
         Predictor predictor;
-        //TODO turn this into a case-switch statement
+
         if (algorithm.equalsIgnoreCase("majority")) {
             predictor = new MajorityPredictor();
         } else if (algorithm.equalsIgnoreCase("even_odd")) {
             predictor = new EvenOddPredictor();
         } else if (algorithm.equalsIgnoreCase("decision_tree")) {
             predictor = new DecisionTreePredictor(max_decision_tree_depth);
+        } else if (algorithm.equalsIgnoreCase("naive_bayes")) {
+            predictor = new NaiveBayesPredictor(lamda);
         } else {
             System.out.println("No matching algorithm.");
             return null;
         }
         predictor.train(instances);
-        //if (predictor instanceof DecisionTreePredictor) {
-        //    DecisionTreePredictor printPredictor = (DecisionTreePredictor) predictor;
-        //    printPredictor.printTree();
-        //}
         //Evaluate training data
         double trainEvaluation = AccuracyEvaluator.evaluate(instances, predictor);
         System.out.println("Training Evaluation: " + trainEvaluation);
@@ -170,6 +165,7 @@ public class Classify {
         registerOption("algorithm", "String", true, "The name of the algorithm for training.");
         registerOption("model_file", "String", true, "The name of the model file to create/load.");
         registerOption("max_decision_tree_depth", "int", true, "The maximum depth of the decision tree.");
+        registerOption("lambda", "double", true, "The level of smoothing for Naive Bayes.");
 
         // Other options will be added here.
     }
