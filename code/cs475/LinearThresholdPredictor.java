@@ -1,9 +1,9 @@
 package cs475;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.*;
 
-public abstract class LinearThresholdPredictor implements Serializable {
+public abstract class LinearThresholdPredictor extends Predictor implements Serializable {
 	private static final long serialVersionUID = 1L;
 
         double thickness_;
@@ -12,6 +12,7 @@ public abstract class LinearThresholdPredictor implements Serializable {
         int training_iterations_;
         public ClassificationLabel oneLabel;
         private TreeMap<Integer, Double> weights;
+        protected double beta_;
         public LinearThresholdPredictor(double thickness,
                                         double online_learning_rate,
                                         int online_training_iterations) {
@@ -32,15 +33,15 @@ public abstract class LinearThresholdPredictor implements Serializable {
                 }
             }
             weights = initWeights(maxDim);
-            double beta = initBeta(instances.size());
+            initBeta(instances.size());
             for (int k = 0; k < training_iterations_; ++k) {
                 for (Instance i : instances) {
                     int yHat = 0;
                     double dotProd = dotProduct(weights, i);
-                    if (dotProd >= (beta + thickness_) {
+                    if (dotProd >= (beta_ + thickness_)) {
                         yHat = 1;
-                    } else if (dotProd <= (beta - thickness_) {
-                        yhat = -1;
+                    } else if (dotProd <= (beta_ - thickness_)) {
+                        yHat = -1;
                     }
                     if (yHat == -1 && i.getLabel().equals(oneLabel)) {
                             updateWeights(weights, -1, i);
@@ -57,8 +58,8 @@ public abstract class LinearThresholdPredictor implements Serializable {
             }
         }
 
-        public abstract double initBeta(int numInstances);
-        public abstract updateWeights(TreeMap<Integer, Double> weights, int yHat, Instance i);
+        public abstract void initBeta(int numInstances);
+        public abstract void updateWeights(TreeMap<Integer, Double> weights, int yHat, Instance i);
         public abstract TreeMap<Integer, Double> initWeights(int maxDim);
 
         public double dotProduct (TreeMap<Integer, Double> weights, Instance i) {
@@ -71,8 +72,8 @@ public abstract class LinearThresholdPredictor implements Serializable {
         }
 
     public Label predict(Instance instance) {
-        double dotProd = dotProduct(weights, i);
-        if (dotProd >= (beta) {
+        double dotProd = dotProduct(weights, instance);
+        if (dotProd >= (beta_)) {
             return new ClassificationLabel(1);
         } else {
             return new ClassificationLabel(-1);

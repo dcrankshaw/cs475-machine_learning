@@ -2,8 +2,9 @@ package cs475;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.*;
 
-public class NaiveBayesPredictor implements Serializable {
+public class NaiveBayesPredictor extends Predictor implements Serializable {
     private static final long serialVersionUID = 1L;
     private double lambda_;
     private double PYPosOne;
@@ -26,7 +27,7 @@ public class NaiveBayesPredictor implements Serializable {
         // Construct mean feature vector and find P(Y = 1), P(Y = -1)
         FeatureVector meanFeatureVals = new FeatureVector();
         ArrayList<Boolean> binaryFeatures = new ArrayList<Boolean>();
-        ArrayList<Double> featureOccurrenceCounts = 0;
+        ArrayList<Double> featureOccurrenceCounts = new ArrayList<Double>();
 
         for (Instance currentInstance : instances) {
 
@@ -41,9 +42,9 @@ public class NaiveBayesPredictor implements Serializable {
             for (Feature currentFeature : currentVector) {
                 // Count the number of times we see this feature
                 Double occurrenceCount = featureOccurrenceCounts.get(currentFeature.index_);
-                featureOccurrenceCounts.add(currentFeature.index_.
-                                            occurrenceCount == null ? 1 : occurrenceCount + 1);
-                double total = meanFeatureVals.get(currentFeature.index_).value_;
+                featureOccurrenceCounts.add(currentFeature.index_,
+                        occurrenceCount == null ? 1 : occurrenceCount + 1);
+                double total = meanFeatureVals.get(currentFeature.index_);
                 total += currentFeature.value_;
                 meanFeatureVals.add(currentFeature.index_, total);
                 if (currentFeature.value_ != 1) {
@@ -62,8 +63,8 @@ public class NaiveBayesPredictor implements Serializable {
             }
         }
 
-        PYPosOne = (labelPosOneCount + lambda) / (instances.size() + 2.0 * lambda);
-        PYNegOne = (labelNegOneCount + lambda) / (instances.size() + 2.0 * lambda);
+        PYPosOne = (labelPosOneCount + lambda_) / (instances.size() + 2.0 * lambda_);
+        PYNegOne = (labelNegOneCount + lambda_) / (instances.size() + 2.0 * lambda_);
 
         // TODO make sure that refs work the way I think they do, and this is
         // updating the feature in the vector
@@ -82,10 +83,10 @@ public class NaiveBayesPredictor implements Serializable {
         String aboveMeanKey = "aboveMean";
         String totalKey = "total";
         HashMap<Integer, Map<String, Double>> posOneFeatureCounts = new HashMap<Integer, Map<String, Double>>();
-        HashMap<Integer, Map<Integer, Double>> negOneFeatureCounts = new HashMap<Integer, Map<String, Double>>();
+        HashMap<Integer, Map<String, Double>> negOneFeatureCounts = new HashMap<Integer, Map<String, Double>>();
         for (Instance currentInstance : instances) {
             HashMap<Integer, Map<String, Double>> currentLabelCounts;
-            bool oneFeature = false;
+            boolean oneFeature = false;
             if (currentInstance.getLabel().equals(oneLabel)) {
                 currentLabelCounts = posOneFeatureCounts;
                 oneFeature = true;
@@ -93,7 +94,7 @@ public class NaiveBayesPredictor implements Serializable {
                 currentLabelCounts = negOneFeatureCounts;
             }
             for (Feature currentFeature : currentInstance.getFeatureVector()) {
-                Feature meanFeature = meanFeatureVals.get(currentFeature.index_);
+                Feature meanFeature = meanFeatureVals.getFeature(currentFeature.index_);
                 int index = currentFeature.index_;
                 if (binaryFeatures.get(index) == null || !binaryFeatures.get(index)) {
                     // Continuous feature
@@ -101,8 +102,8 @@ public class NaiveBayesPredictor implements Serializable {
                     if (counts == null) {
                         // Initialize counts
                         counts = new HashMap<String, Double>();
-                        counts.put(totalKey, 2*lambda);
-                        counts.put(aboveMeanKey, lambda);
+                        counts.put(totalKey, 2*lambda_);
+                        counts.put(aboveMeanKey, lambda_);
                     }
                     counts.put(totalKey, counts.get(totalKey) + 1);
                     if (currentFeature.value_ > meanFeature.value_) {
@@ -114,23 +115,22 @@ public class NaiveBayesPredictor implements Serializable {
                     if (counts == null) {
                         // Initialize counts
                         counts = new HashMap<String, Double>();
-                        int denominator = oneFeature ? labelPosOneCount : labelNegOneCount;
-                        denominator += 2*lambda;
+                        double denominator = oneFeature ? labelPosOneCount : labelNegOneCount;
+                        denominator += 2*lambda_;
                         counts.put(totalKey, denominator);
-                        counts.put(aboveMeanKey, lambda);
+                        counts.put(aboveMeanKey, lambda_);
                     }
                     counts.put(aboveMeanKey, counts.get(aboveMeanKey) + 1);
-                    }
                 }
             }
         }
-        for (Integer index : posOneFeatureCounts.entrySet()) {
-            Map<String, Integer> counts = posOneFeatureCounts.get(index);
+        for (Integer index : posOneFeatureCounts.keySet()) {
+            Map<String, Double> counts = posOneFeatureCounts.get(index);
             Double condProb = counts.get(aboveMeanKey) / counts.get(totalKey);
             posOneCondProb.put(index, condProb);
         }
-        for (Integer index : negOneFeatureCounts.entrySet()) {
-            Map<String, Integer> counts = negOneFeatureCounts.get(index);
+        for (Integer index : negOneFeatureCounts.keySet()) {
+            Map<String, Double> counts = negOneFeatureCounts.get(index);
             Double condProb = counts.get(aboveMeanKey) / counts.get(totalKey);
             negOneCondProb.put(index, condProb);
         }

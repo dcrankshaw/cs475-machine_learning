@@ -63,7 +63,7 @@ public class Classify {
             data_reader.close();
 
             // Train the model.
-            Predictor predictor = train(instances, algorithm, max_decision_tree_depth);
+            Predictor predictor = train(instances, algorithm);
             saveObject(predictor, model_file);		
 
         } else if (mode.equalsIgnoreCase("test")) {

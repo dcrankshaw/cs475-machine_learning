@@ -1,7 +1,7 @@
 package cs475;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.*;
 
 public class WinnowPredictor extends LinearThresholdPredictor {
     private static final long serialVersionUID = 1L;
@@ -11,8 +11,8 @@ public class WinnowPredictor extends LinearThresholdPredictor {
         super(thickness, online_learning_rate, online_training_iterations);
     }
 
-    public double initBeta(int numInstances) {
-        return (double) numInstances / 2.0;
+    public void initBeta(int numInstances) {
+        beta_ = (double) numInstances / 2.0;
     }
     public void updateWeights(TreeMap<Integer, Double> weights, int yActual, Instance i) {
         for (Feature f : i.getFeatureVector()) {
