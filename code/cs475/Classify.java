@@ -19,6 +19,9 @@ public class Classify {
     static public LinkedList<Option> options = new LinkedList<Option>();
     public static int max_decision_tree_depth = 4;
     public static double lambda = 1.0;
+    public static int online_training_iterations = 1;
+    public static double online_learning_rate;
+    public static double thickness = 0.0;
 
     public static void main(String[] args) throws IOException {
         // Parse the command line.
@@ -31,11 +34,21 @@ public class Classify {
         String predictions_file = CommandLineUtilities.getOptionValue("predictions_file");
         String algorithm = CommandLineUtilities.getOptionValue("algorithm");
         String model_file = CommandLineUtilities.getOptionValue("model_file");
+        online_learning_rate = algorithm.equals("winnow") ? 2.0 : 1.0;
         if (CommandLineUtilities.hasArg("max_decision_tree_depth")) {
             max_decision_tree_depth = CommandLineUtilities.getOptionValueAsInt("max_decision_tree_depth");
         }
         if (CommandLineUtilities.hasArg("lambda")) {
             lambda = CommandLineUtilities.getOptionValueAsFloat("lambda");
+        }
+        if (CommandLineUtilities.hasArg("online_training_iterations")) {
+            online_training_iterations = CommandLineUtilities.getOptionValueAsInt("online_training_iterations");
+        }
+        if (CommandLineUtilities.hasArg("online_learning_rate")) {
+            online_learning_rate = CommandLineUtilities.getOptionValueAsFloat("online_learning_rate");
+        }
+        if (CommandLineUtilities.hasArg("thickness")) {
+          thickness = CommandLineUtilities.getOptionValueAsFloat("thickness");
         }
 
 
@@ -85,7 +98,15 @@ public class Classify {
         } else if (algorithm.equalsIgnoreCase("decision_tree")) {
             predictor = new DecisionTreePredictor(max_decision_tree_depth);
         } else if (algorithm.equalsIgnoreCase("naive_bayes")) {
-            predictor = new NaiveBayesPredictor(lamda);
+            predictor = new NaiveBayesPredictor(lambda);
+        } else if (algorithm.equalsIgnoreCase("winnow")) {
+            predictor = new WinnowPredictor(thickness,
+                                            online_learning_rate,
+                                            online_training_iterations);
+        } else if (algorithm.equalsIgnoreCase("perceptron")) {
+            predictor = new PerceptronPredictor(thickness,
+                                            online_learning_rate,
+                                            online_training_iterations);
         } else {
             System.out.println("No matching algorithm.");
             return null;
@@ -166,6 +187,9 @@ public class Classify {
         registerOption("model_file", "String", true, "The name of the model file to create/load.");
         registerOption("max_decision_tree_depth", "int", true, "The maximum depth of the decision tree.");
         registerOption("lambda", "double", true, "The level of smoothing for Naive Bayes.");
+        registerOption("thickness", "double", true, "The value of the linear separator thickness.");
+        registerOption("online_learning_rate", "double", true, "The LTU learning rate.");
+        registerOption("online_training_iterations", "int", true, "The number of training iterations for LTU.");
 
         // Other options will be added here.
     }
