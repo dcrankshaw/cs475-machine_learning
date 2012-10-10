@@ -1,7 +1,7 @@
 \documentclass[letterpaper,11pt]{article}
 \title{CS475 Machine Learning, Fall 2012: Homework 3}
 \date{}
-\author{\bf Your Name and Your JHED ID}
+\author{\bf Dan Crankshaw - dcranks1}
 
 
 \usepackage[margin=1in]{geometry}
@@ -32,30 +32,98 @@
 
 \maketitle
 
-\paragraph*{Instructions} Please fill in your name and JHED ID above.
 
 \paragraph{Question 1:}
 \begin{enumerate}[(a)]
-\item \begin{enumerate}[(1)]
+\item  The exponential distribution family takes the form
+  \begin{equation}
+  f(X=x;\theta) = h(x) e^{\eta(\theta) T(x) - A(\theta)}
+  \end{equation}
+\begin{enumerate}[(1)]
 \item
+  The binomial distribution is
+  \begin{align}
+  f(X=x;p) & = \binom{n}{x} p^x (1-p)^{n-x}\\
+           & = \binom{n}{x} e^{log(p^x (1-p)^{n-x})}\\
+           & = \binom{n}{x} e^{x log(\frac{p}{1-p}) + nlog(1-p)}\\
+           & = h(x) e^{\eta(\theta) T(x) - A(\theta)}
+  \end{align}
+ where $h(x) = \binom{n}{x}$, $\eta(\theta) = log \frac{\theta}{1 - \theta}$, $T(x) = x$, and $A(\theta) = -nlog(1-\theta)$.
+
 \item
+  The Poisson distribution is
+  \begin{align}
+  f(X=x;\lambda) & = \frac{\lambda^x e^{-\lambda}}{x!}\\
+                 & = \frac{1}{x!} e^{x log \lambda - \lambda}\\
+                 & = h(x) e^{\eta(\theta) T(x) - A(\theta)}
+  \end{align}
+ where $h(x) = \frac{1}{x!}$, $\eta(\theta) = log \theta$, $T(x) = x$, and $A(\theta) = \theta$.
 \item
+  The Gaussian distribution is
+  \begin{align}
+  f(X=x;\lambda) & = \frac{1}{\sigma \sqrt{2 \pi}} e^{-\frac{(x-\mu)^2}{2\sigma^2}}\\
+                 & = \frac{1}{\sigma \sqrt{2 \pi}} e^{-\frac{x^2}{2\sigma^2}} e^{\frac{x \mu}{\sigma^2} - \frac{\mu^2}{2 \sigma^2}}\\
+                 & = h(x) e^{\eta(\theta) T(x) - A(\theta)}
+  \end{align}
+ where $h(x) = \frac{1}{\sigma \sqrt{2 \pi}} e^{-\frac{x^2}{2\sigma^2}}$, $\eta(\theta) = \frac{\mu}{\sigma^2}$, $T(x) = x$, and $A(\theta) = \frac{\mu^2}{2 \sigma^2}$.
 \end{enumerate}
 \item
+
 \item
+ We still call them linear models because the model itself is linear. It creates a separating hyperplane
+and is a linear function of x. The non-linearity comes from passing the output of the linear model through
+a potentially non-linear function (like the logistic function), generally to map the output to a specific range.
 \item
+If the data are linearly separable, then the maximum likelihood hyperplane occurs when the probability of
+predicting the correct class for the data goes to 1. That probability is
+\begin{equation}
+  P(Y=y_{c} | x) = \frac{1}{1 + e^{-w^T \cdot x}}
+\end{equation}
+This probability goes to 1 when $w^T \cdot x$ goes to infinity. Because $x$ is fixed, this occurs when
+$w$ goes to infinity. We can prevent this from happening by adding a regularization term, which is an additional
+term in the MLE function we are maximizing. This term is a penalty term based on the size of the $l_1$ or square norm
+of w, so that the bigger the sizes of the coefficients in w, the larger the penalty incurred. This acts as a
+counterbalance to the logistic function portion of the equation, which in the case of linearly separable
+data will tend to go to infinity. This means that the maximum value of the logistic function with
+regularization will be finite.
 \end{enumerate}
 
 \paragraph{Question 2:}
 \begin{enumerate}[(a)]
 \item
+There are $2*2*d = 4d$ parameters used to describe this mixture. There are 2 paramaters, $\mu$ and $\sigma$,
+to describe a univariate Gaussian distribution. We therefore need $2*d$ parameters to describe d of these
+distributions, one for each dimension. But because the data comes from a mixture of 2 multivariate Gaussian
+distributions, each dimension has 2 distributions associated with it, one from each model. That is where the last
+factor of 2 comes from.
 \item
+There are d paramaters used in logistic regression, one for each dimension (these are the indices of the weight vector \textbf{w}).
+There are $2*d$ parameters used in Naive Bayes ($P(X|Y = 0)$ and $P(X|Y = 1)$). Naive Bayes makes the assumption that the
+features in x are conditionally independent.
 \item
+Generative models maximize likelihood, whereas discriminative models maximize conditional likelihood.
 \end{enumerate}
 
 \paragraph{Question 3:}
+Given a trained naive Bayes classifier, if we encounter a missing value for a feature, we can ignore that
+feature when making our probability predictions. This is possible because of the conditional independence
+assumption made for naive Bayes models. This means that
+\begin{align}
+  P(Y, X_1, X_2, \ldots , X_{d - 1}) & = P(Y) \Pi_{j=1}^{d-1}P(X_i | Y) \Sum_{i=1}^K P(X_{d,i} | Y)\\
+                                     & = P(Y) \Pi_{j=1}^{d-1}P(X_i | Y) 1
+\end{align}
+Not knowing the value of one feature has no effect on the conditional probabilities of the other features,
+and because the sum of the conditional probabilities of all possible values for the missing feature is 1,
+we can ignore that feature.
+
 
 \paragraph{Question 4:}
+$\lambda$ helps to increase the bias of the model and decrease the variance. Add-$\lambda$ smoothing gives
+some small probability to every event and prevents any zero conditional probabilities from appearing in
+our model, no matter what the training data is. By giving some small probability
+to every event (instead of 0 probability), we lessen the amount that the model will vary based on the
+training data, preventing us from over-fitting any particular training model. This is biasing the model in
+favor of smoother or more uniform probability distributions.
 
 
 \end{document}
