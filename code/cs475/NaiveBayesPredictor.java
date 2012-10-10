@@ -26,6 +26,8 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
         double labelPosOneCount = 0;
         double labelNegOneCount = 0;
         ClassificationLabel oneLabel = new ClassificationLabel(1);
+        List<Instance> posOneInstances = new ArrayList<Instance>();
+        List<Instance> negOneInstances = new ArrayList<Instance>();
 
         // Construct mean feature vector and find P(Y = 1), P(Y = -1)
         FeatureVector totalFeatureVals = new FeatureVector();
@@ -36,8 +38,10 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
 
             if (currentInstance.getLabel().equals(oneLabel)) {
                 ++labelPosOneCount;
+                posOneInstances.add(currentInstance);
             } else {
                 ++labelNegOneCount;
+                negOneInstances.add(currentInstance);
             }
 
 
@@ -68,7 +72,6 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
 
         PYPosOne = (labelPosOneCount + lambda_) / (instances.size() + 2.0 * lambda_);
         PYNegOne = (labelNegOneCount + lambda_) / (instances.size() + 2.0 * lambda_);
-        double sum = PYPosOne + PYNegOne;
 
         meanFeatureVals = new FeatureVector();
 
@@ -87,6 +90,67 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
         String aboveMeanKey = "aboveMean";
         String totalKey = "total";
         HashMap<Integer, Map<String, Double>> posOneFeatureCounts = new HashMap<Integer, Map<String, Double>>();
+        /*
+        for (Instance curInstance : posOneInstances) {
+            for (Feature f : curInstance.getFeatureVector()) {
+                Feature meanFeatureVal = meanFeatureVals.getFeature(f.index_);
+                Map<String, Double> counts = posOneFeatureCounts.get(f.index_);
+                if (binaryFeatures.get(f.index_)) {
+                    //binary
+                    if (counts == null) {
+                        counts = new HashMap<String, Double>();
+                        posOneFeatureCounts.put(f.index_, counts);
+                        counts.put(aboveMeanKey, lambda_);
+                        counts.put(totalKey, labelPosOneCount + 2*lambda_);
+                    }
+                    counts.put(aboveMeanKey, counts.get(aboveMeanKey) + 1);
+                } else {
+                    //continuous
+                    if (counts == null) {
+                        counts = new HashMap<String, Double>();
+                        posOneFeatureCounts.put(f.index_, counts);
+                        counts.put(aboveMeanKey, 1.0*lambda_);
+                        counts.put(totalKey, 2.0*lambda_);
+                    }
+                    counts.put(totalKey, counts.get(totalKey) + 1.0);
+                    if (f.value_ > meanFeatureVal.value_) {
+                        counts.put(aboveMeanKey, counts.get(aboveMeanKey) + 1);
+                    }
+                }
+            }
+        }
+        HashMap<Integer, Map<String, Double>> negOneFeatureCounts = new HashMap<Integer, Map<String, Double>>();
+        for (Instance curInstance : negOneInstances) {
+            for (Feature f : curInstance.getFeatureVector()) {
+                Feature meanFeatureVal = meanFeatureVals.getFeature(f.index_);
+                Map<String, Double> counts = negOneFeatureCounts.get(f.index_);
+                if (binaryFeatures.get(f.index_)) {
+                    //binary
+                    if (counts == null) {
+                        counts = new HashMap<String, Double>();
+                        negOneFeatureCounts.put(f.index_, counts);
+                        counts.put(aboveMeanKey, lambda_);
+                        counts.put(totalKey, labelPosOneCount + 2*lambda_);
+                    }
+                    counts.put(aboveMeanKey, counts.get(aboveMeanKey) + 1);
+                } else {
+                    //continuous
+                    if (counts == null) {
+                        counts = new HashMap<String, Double>();
+                        negOneFeatureCounts.put(f.index_, counts);
+                        counts.put(aboveMeanKey, 1.0*lambda_);
+                        counts.put(totalKey, 2.0*lambda_);
+                    }
+                    counts.put(totalKey, counts.get(totalKey) + 1.0);
+                    if (f.value_ > meanFeatureVal.value_) {
+                        counts.put(aboveMeanKey, counts.get(aboveMeanKey) + 1);
+                    }
+                }
+            }
+        }
+        */
+
+        
         HashMap<Integer, Map<String, Double>> negOneFeatureCounts = new HashMap<Integer, Map<String, Double>>();
         for (Instance currentInstance : instances) {
             HashMap<Integer, Map<String, Double>> currentLabelCounts;
@@ -106,6 +170,7 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
                     if (counts == null) {
                         // Initialize counts
                         counts = new HashMap<String, Double>();
+                        currentLabelCounts.put(index, counts);
                         counts.put(totalKey, 2*lambda_);
                         counts.put(aboveMeanKey, lambda_);
                     }
@@ -119,6 +184,7 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
                     if (counts == null) {
                         // Initialize counts
                         counts = new HashMap<String, Double>();
+                        currentLabelCounts.put(index, counts);
                         double denominator = oneFeature ? labelPosOneCount : labelNegOneCount;
                         denominator += 2*lambda_;
                         counts.put(totalKey, denominator);
@@ -128,6 +194,7 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
                 }
             }
         }
+       
         for (Integer index : posOneFeatureCounts.keySet()) {
             Map<String, Double> mycounts = posOneFeatureCounts.get(index);
             Double condProb = mycounts.get(aboveMeanKey) / mycounts.get(totalKey);
@@ -138,6 +205,15 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
             Double condProb = counts2.get(aboveMeanKey) / counts2.get(totalKey);
             negOneCondProb.put(index, condProb);
         }
+        /*
+        System.out.println("Binary features:");
+        for (Integer i : binaryFeatures.keySet()) {
+            Boolean binary = binaryFeatures.get(i);
+            if (binary) {
+                System.out.println(i);
+            }
+        }
+        */
 
         trained_ = true;
     }
@@ -148,40 +224,54 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
         }
 
         double posOneProb = Math.log(PYPosOne);
+        for (Feature feature : instance.getFeatureVector()) {
+            if (binaryFeatures.get(feature.index_) != null) {
+                if (binaryFeatures.get(feature.index_)) {
+                    //binary feature
+                    Double additionalProb = posOneCondProb.get(feature.index_);
+                    if (additionalProb != null) {
+                        posOneProb += Math.log(additionalProb);
+                    }
+                } else {
+                    Double meanFeatureVal = meanFeatureVals.get(feature.index_);
+                    if (feature.value_ > meanFeatureVal) {
+                        Double additionalProb = posOneCondProb.get(feature.index_);
+                        if (additionalProb != null) {
+                            posOneProb += Math.log(additionalProb);
+                        }
+                    } else {
+                        Double oneMinusAdditionalProb = posOneCondProb.get(feature.index_);
+                        if (oneMinusAdditionalProb != null) {
+                            Double additionalProb = 1 - oneMinusAdditionalProb;
+                            posOneProb += Math.log(additionalProb);
+                        }
+                    }
+                }
+            }
+        }
         double negOneProb = Math.log(PYNegOne);
         for (Feature feature : instance.getFeatureVector()) {
-            int index = feature.index_;
-            if (binaryFeatures.get(index) == null || !binaryFeatures.get(index)) {
-                Double posProbAboveMean = posOneCondProb.get(feature.index_);
-                Double negProbAboveMean = negOneCondProb.get(feature.index_);
-                Double meanFeatureVal = meanFeatureVals.get(feature.index_);
-                if (posProbAboveMean != null && meanFeatureVal != null) {
-                    // continuous feature
-                    if (feature.value_ <= meanFeatureVal) {
-                        Double posProbBelowMean = 1 - posProbAboveMean;
-                        posOneProb += Math.log(posProbBelowMean);
-                    } else {
-                        posOneProb += Math.log(posProbAboveMean);
+            if (binaryFeatures.get(feature.index_) != null) {
+                if (binaryFeatures.get(feature.index_)) {
+                    //binary feature
+                    Double additionalProb = negOneCondProb.get(feature.index_);
+                    if (additionalProb != null) {
+                        negOneProb += Math.log(additionalProb);
                     }
-                }
-                if (negProbAboveMean != null && meanFeatureVal != null) {
-                    // continuous feature
-                    if (feature.value_ <= meanFeatureVal) {
-                        Double negProbBelowMean = 1 - negProbAboveMean;
-                        negOneProb += Math.log(negProbBelowMean);
+                } else {
+                    Double meanFeatureVal = meanFeatureVals.get(feature.index_);
+                    if (feature.value_ > meanFeatureVal) {
+                        Double additionalProb = negOneCondProb.get(feature.index_);
+                        if (additionalProb != null) {
+                            negOneProb += Math.log(additionalProb);
+                        }
                     } else {
-                        negOneProb += Math.log(negProbAboveMean);
+                        Double oneMinusAdditionalProb = negOneCondProb.get(feature.index_);
+                        if (oneMinusAdditionalProb != null) {
+                            Double additionalProb = 1 - oneMinusAdditionalProb;
+                            negOneProb += Math.log(additionalProb);
+                        }
                     }
-                }
-            } else {
-                // binary feature
-                Double posProb = posOneCondProb.get(feature.index_);
-                if (posProb != null) {
-                    posOneProb += Math.log(posProb);
-                }
-                Double negProb = negOneCondProb.get(feature.index_);
-                if (negProb != null) {
-                    negOneProb += Math.log(negProb);
                 }
             }
         }
