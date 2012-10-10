@@ -63,5 +63,4 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
             internalIterator.remove();
         }
     }
-
 }

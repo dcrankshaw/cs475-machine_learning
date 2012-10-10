@@ -146,14 +146,12 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
         double posOneProb = Math.log(PYPosOne) / Math.log(2);
         double negOneProb = Math.log(PYNegOne) / Math.log(2);
         for (Feature feature : instance.getFeatureVector()) {
-            double posProb = posOneCondProb.get(feature.index_);
-            posOneProb += Math.log(posProb) / Math.log(2);
-            double negProb = negOneCondProb.get(feature.index_);
-            negOneProb += Math.log(negProb) / Math.log(2);
-            // Can finish this once I have the whole zero-valued feature slash
-            // unobserved features thing worked out.
-            // TODO just need to finish computing the sum of the logs of
-            // the conditional probabilities
+            Double posProb = posOneCondProb.get(feature.index_);
+            if (posProb != null)
+                posOneProb += Math.log(posProb) / Math.log(2);
+            Double negProb = negOneCondProb.get(feature.index_);
+            if (negProb != null)
+                negOneProb += Math.log(negProb) / Math.log(2);
         }
         if(posOneProb >= negOneProb) {
             return new ClassificationLabel(1);

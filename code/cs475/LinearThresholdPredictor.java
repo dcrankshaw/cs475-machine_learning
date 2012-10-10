@@ -66,7 +66,8 @@ public abstract class LinearThresholdPredictor extends Predictor implements Seri
             double result = 0;
             for (Feature f : i.getFeatureVector()) {
                 Double weight = weights.get(f.index_);
-                result += weight*f.value_;
+                if (weight != null)
+                    result += weight*f.value_;
             }
             return result;
         }

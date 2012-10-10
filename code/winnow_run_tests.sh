@@ -9,13 +9,13 @@
 #datasets[4]='nlp'
 #datasets[5]='speech'
 #datasets[6]='vision'
-datasets=( bio finance nlp speech speech.mc vision easy hard )
+datasets=( bio finance nlp speech vision easy hard )
 # datasets=(speech speech.mc )
 
 # CLASSIFIER=$1
-CLASSIFIER=decision_tree
-TRAIN=./2hw_train.sh
-TEST=./2hw_test.sh
+CLASSIFIER=winnow
+TRAIN=./winnow_train.sh
+TEST=./winnow_test.sh
 
 for i in "${datasets[@]}"
 do
