@@ -129,13 +129,13 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
             }
         }
         for (Integer index : posOneFeatureCounts.keySet()) {
-            Map<String, Double> counts = posOneFeatureCounts.get(index);
-            Double condProb = counts.get(aboveMeanKey) / counts.get(totalKey);
+            Map<String, Double> mycounts = posOneFeatureCounts.get(index);
+            Double condProb = mycounts.get(aboveMeanKey) / mycounts.get(totalKey);
             posOneCondProb.put(index, condProb);
         }
         for (Integer index : negOneFeatureCounts.keySet()) {
-            Map<String, Double> counts = negOneFeatureCounts.get(index);
-            Double condProb = counts.get(aboveMeanKey) / counts.get(totalKey);
+            Map<String, Double> counts2 = negOneFeatureCounts.get(index);
+            Double condProb = counts2.get(aboveMeanKey) / counts2.get(totalKey);
             negOneCondProb.put(index, condProb);
         }
 
@@ -147,8 +147,8 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
             throw new IllegalStateException("Must train model before predicting");
         }
 
-        double posOneProb = Math.log(PYPosOne) / Math.log(2);
-        double negOneProb = Math.log(PYNegOne) / Math.log(2);
+        double posOneProb = Math.log(PYPosOne);
+        double negOneProb = Math.log(PYNegOne);
         for (Feature feature : instance.getFeatureVector()) {
             int index = feature.index_;
             if (binaryFeatures.get(index) == null || !binaryFeatures.get(index)) {
@@ -159,29 +159,29 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
                     // continuous feature
                     if (feature.value_ <= meanFeatureVal) {
                         Double posProbBelowMean = 1 - posProbAboveMean;
-                        posOneProb += Math.log(posProbBelowMean) / Math.log(2);
+                        posOneProb += Math.log(posProbBelowMean);
                     } else {
-                        posOneProb += Math.log(posProbAboveMean) / Math.log(2);
+                        posOneProb += Math.log(posProbAboveMean);
                     }
                 }
                 if (negProbAboveMean != null && meanFeatureVal != null) {
                     // continuous feature
                     if (feature.value_ <= meanFeatureVal) {
                         Double negProbBelowMean = 1 - negProbAboveMean;
-                        negOneProb += Math.log(negProbBelowMean) / Math.log(2);
+                        negOneProb += Math.log(negProbBelowMean);
                     } else {
-                        negOneProb += Math.log(negProbAboveMean) / Math.log(2);
+                        negOneProb += Math.log(negProbAboveMean);
                     }
                 }
             } else {
                 // binary feature
                 Double posProb = posOneCondProb.get(feature.index_);
                 if (posProb != null) {
-                    posOneProb += Math.log(posProb) / Math.log(2);
+                    posOneProb += Math.log(posProb);
                 }
                 Double negProb = negOneCondProb.get(feature.index_);
                 if (negProb != null) {
-                    negOneProb += Math.log(negProb) / Math.log(2);
+                    negOneProb += Math.log(negProb);
                 }
             }
         }
