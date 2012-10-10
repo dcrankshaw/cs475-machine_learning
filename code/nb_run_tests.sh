@@ -9,8 +9,8 @@
 #datasets[4]='nlp'
 #datasets[5]='speech'
 #datasets[6]='vision'
-datasets=( bio finance nlp speech vision easy hard )
-# datasets=(speech speech.mc )
+datasets=( bio finance nlp speech vision hard easy)
+#datasets=(easy)
 
 # CLASSIFIER=$1
 CLASSIFIER=naive_bayes

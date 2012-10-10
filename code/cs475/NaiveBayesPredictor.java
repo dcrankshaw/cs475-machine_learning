@@ -90,69 +90,13 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
         String aboveMeanKey = "aboveMean";
         String totalKey = "total";
         HashMap<Integer, Map<String, Double>> posOneFeatureCounts = new HashMap<Integer, Map<String, Double>>();
-        /*
-        for (Instance curInstance : posOneInstances) {
-            for (Feature f : curInstance.getFeatureVector()) {
-                Feature meanFeatureVal = meanFeatureVals.getFeature(f.index_);
-                Map<String, Double> counts = posOneFeatureCounts.get(f.index_);
-                if (binaryFeatures.get(f.index_)) {
-                    //binary
-                    if (counts == null) {
-                        counts = new HashMap<String, Double>();
-                        posOneFeatureCounts.put(f.index_, counts);
-                        counts.put(aboveMeanKey, lambda_);
-                        counts.put(totalKey, labelPosOneCount + 2*lambda_);
-                    }
-                    counts.put(aboveMeanKey, counts.get(aboveMeanKey) + 1);
-                } else {
-                    //continuous
-                    if (counts == null) {
-                        counts = new HashMap<String, Double>();
-                        posOneFeatureCounts.put(f.index_, counts);
-                        counts.put(aboveMeanKey, 1.0*lambda_);
-                        counts.put(totalKey, 2.0*lambda_);
-                    }
-                    counts.put(totalKey, counts.get(totalKey) + 1.0);
-                    if (f.value_ > meanFeatureVal.value_) {
-                        counts.put(aboveMeanKey, counts.get(aboveMeanKey) + 1);
-                    }
-                }
-            }
-        }
-        HashMap<Integer, Map<String, Double>> negOneFeatureCounts = new HashMap<Integer, Map<String, Double>>();
-        for (Instance curInstance : negOneInstances) {
-            for (Feature f : curInstance.getFeatureVector()) {
-                Feature meanFeatureVal = meanFeatureVals.getFeature(f.index_);
-                Map<String, Double> counts = negOneFeatureCounts.get(f.index_);
-                if (binaryFeatures.get(f.index_)) {
-                    //binary
-                    if (counts == null) {
-                        counts = new HashMap<String, Double>();
-                        negOneFeatureCounts.put(f.index_, counts);
-                        counts.put(aboveMeanKey, lambda_);
-                        counts.put(totalKey, labelPosOneCount + 2*lambda_);
-                    }
-                    counts.put(aboveMeanKey, counts.get(aboveMeanKey) + 1);
-                } else {
-                    //continuous
-                    if (counts == null) {
-                        counts = new HashMap<String, Double>();
-                        negOneFeatureCounts.put(f.index_, counts);
-                        counts.put(aboveMeanKey, 1.0*lambda_);
-                        counts.put(totalKey, 2.0*lambda_);
-                    }
-                    counts.put(totalKey, counts.get(totalKey) + 1.0);
-                    if (f.value_ > meanFeatureVal.value_) {
-                        counts.put(aboveMeanKey, counts.get(aboveMeanKey) + 1);
-                    }
-                }
-            }
-        }
-        */
 
         
         HashMap<Integer, Map<String, Double>> negOneFeatureCounts = new HashMap<Integer, Map<String, Double>>();
+        int maxDim = 0;
         for (Instance currentInstance : instances) {
+            int currentDim = currentInstance.getFeatureVector().dimensionality();
+            maxDim =  currentDim > maxDim ? currentDim : maxDim;
             HashMap<Integer, Map<String, Double>> currentLabelCounts;
             boolean oneFeature = false;
             if (currentInstance.getLabel().equals(oneLabel)) {
@@ -191,6 +135,50 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
                         counts.put(aboveMeanKey, lambda_);
                     }
                     counts.put(aboveMeanKey, counts.get(aboveMeanKey) + 1);
+                }
+            }
+        }
+        // add in lambda smoothing for unobserved features
+        for (int i = 1; i <= maxDim; ++i) {
+            if (binaryFeatures.get(i) == null || !binaryFeatures.get(i)) {
+                // Continuous feature
+                Map<String, Double> counts = posOneFeatureCounts.get(i);
+                if (counts == null) {
+                    // Initialize counts
+                    counts = new HashMap<String, Double>();
+                    posOneFeatureCounts.put(i, counts);
+                    counts.put(totalKey, 2*lambda_);
+                    counts.put(aboveMeanKey, lambda_);
+                }
+                Map<String, Double> negCounts = negOneFeatureCounts.get(i);
+                if (negCounts == null) {
+                    // Initialize counts
+                    negCounts = new HashMap<String, Double>();
+                    negOneFeatureCounts.put(i, negCounts);
+                    negCounts.put(totalKey, 2*lambda_);
+                    negCounts.put(aboveMeanKey, lambda_);
+                }
+            } else {
+                // Binary feature
+                Map<String, Double> counts = posOneFeatureCounts.get(i);
+                if (counts == null) {
+                    // Initialize counts
+                    counts = new HashMap<String, Double>();
+                    posOneFeatureCounts.put(i, counts);
+                    double denominator = labelPosOneCount;
+                    denominator += 2*lambda_;
+                    counts.put(totalKey, denominator);
+                    counts.put(aboveMeanKey, lambda_);
+                }
+                Map<String, Double> negCounts = negOneFeatureCounts.get(i);
+                if (negCounts == null) {
+                    // Initialize counts
+                    negCounts = new HashMap<String, Double>();
+                    negOneFeatureCounts.put(i, negCounts);
+                    double denominator = labelNegOneCount;
+                    denominator += 2*lambda_;
+                    negCounts.put(totalKey, denominator);
+                    negCounts.put(aboveMeanKey, lambda_);
                 }
             }
         }
