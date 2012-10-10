@@ -1,7 +1,6 @@
 package cs475;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.*;
 
 public class NaiveBayesPredictor extends Predictor implements Serializable {
@@ -12,11 +11,15 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
     private HashMap<Integer, Double> posOneCondProb;
     private HashMap<Integer, Double> negOneCondProb;
     boolean trained_;
+    private FeatureVector meanFeatureVals;
+    private HashMap<Integer, Boolean> binaryFeatures;
 
 
     public NaiveBayesPredictor(double lambda) {
         lambda_ = lambda;
         trained_ = false;
+        posOneCondProb = new HashMap<Integer, Double>();
+        negOneCondProb = new HashMap<Integer, Double>();
     }
 
     public void train(List<Instance> instances) {
@@ -25,9 +28,9 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
         ClassificationLabel oneLabel = new ClassificationLabel(1);
 
         // Construct mean feature vector and find P(Y = 1), P(Y = -1)
-        FeatureVector meanFeatureVals = new FeatureVector();
-        ArrayList<Boolean> binaryFeatures = new ArrayList<Boolean>();
-        ArrayList<Double> featureOccurrenceCounts = new ArrayList<Double>();
+        FeatureVector totalFeatureVals = new FeatureVector();
+        binaryFeatures = new HashMap<Integer, Boolean>();
+        HashMap<Integer, Double> featureOccurrenceCounts = new HashMap<Integer, Double>();
 
         for (Instance currentInstance : instances) {
 
@@ -42,18 +45,18 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
             for (Feature currentFeature : currentVector) {
                 // Count the number of times we see this feature
                 Double occurrenceCount = featureOccurrenceCounts.get(currentFeature.index_);
-                featureOccurrenceCounts.add(currentFeature.index_,
+                featureOccurrenceCounts.put(currentFeature.index_,
                         occurrenceCount == null ? 1 : occurrenceCount + 1);
-                double total = meanFeatureVals.get(currentFeature.index_);
+                double total = totalFeatureVals.get(currentFeature.index_);
                 total += currentFeature.value_;
-                meanFeatureVals.add(currentFeature.index_, total);
+                totalFeatureVals.add(currentFeature.index_, total);
                 if (currentFeature.value_ != 1) {
                     // Not a binary feature
-                    binaryFeatures.add(currentFeature.index_, false);
+                    binaryFeatures.put(currentFeature.index_, false);
                 } else {
                     if (binaryFeatures.get(currentFeature.index_) == null) {
                         // as far as we know still a binary feature
-                        binaryFeatures.add(currentFeature.index_, true);
+                        binaryFeatures.put(currentFeature.index_, true);
                     } else {
                         // It's either already been marked as a binary feature and so no change is
                         // needed or it's been found to be non-binary and so just because we see a 1
@@ -65,12 +68,13 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
 
         PYPosOne = (labelPosOneCount + lambda_) / (instances.size() + 2.0 * lambda_);
         PYNegOne = (labelNegOneCount + lambda_) / (instances.size() + 2.0 * lambda_);
+        double sum = PYPosOne + PYNegOne;
 
-        // TODO make sure that refs work the way I think they do, and this is
-        // updating the feature in the vector
-        for (Feature current : meanFeatureVals) {
+        meanFeatureVals = new FeatureVector();
+
+        for (Feature current : totalFeatureVals) {
             double mean = current.value_ / featureOccurrenceCounts.get(current.index_);
-            current.value_ = mean;
+            meanFeatureVals.add(current.index_, mean);
         }
 
         // Calculate conditional probalities for each feature
@@ -146,12 +150,40 @@ public class NaiveBayesPredictor extends Predictor implements Serializable {
         double posOneProb = Math.log(PYPosOne) / Math.log(2);
         double negOneProb = Math.log(PYNegOne) / Math.log(2);
         for (Feature feature : instance.getFeatureVector()) {
-            Double posProb = posOneCondProb.get(feature.index_);
-            if (posProb != null)
-                posOneProb += Math.log(posProb) / Math.log(2);
-            Double negProb = negOneCondProb.get(feature.index_);
-            if (negProb != null)
-                negOneProb += Math.log(negProb) / Math.log(2);
+            int index = feature.index_;
+            if (binaryFeatures.get(index) == null || !binaryFeatures.get(index)) {
+                Double posProbAboveMean = posOneCondProb.get(feature.index_);
+                Double negProbAboveMean = negOneCondProb.get(feature.index_);
+                Double meanFeatureVal = meanFeatureVals.get(feature.index_);
+                if (posProbAboveMean != null && meanFeatureVal != null) {
+                    // continuous feature
+                    if (feature.value_ <= meanFeatureVal) {
+                        Double posProbBelowMean = 1 - posProbAboveMean;
+                        posOneProb += Math.log(posProbBelowMean) / Math.log(2);
+                    } else {
+                        posOneProb += Math.log(posProbAboveMean) / Math.log(2);
+                    }
+                }
+                if (negProbAboveMean != null && meanFeatureVal != null) {
+                    // continuous feature
+                    if (feature.value_ <= meanFeatureVal) {
+                        Double negProbBelowMean = 1 - negProbAboveMean;
+                        negOneProb += Math.log(negProbBelowMean) / Math.log(2);
+                    } else {
+                        negOneProb += Math.log(negProbAboveMean) / Math.log(2);
+                    }
+                }
+            } else {
+                // binary feature
+                Double posProb = posOneCondProb.get(feature.index_);
+                if (posProb != null) {
+                    posOneProb += Math.log(posProb) / Math.log(2);
+                }
+                Double negProb = negOneCondProb.get(feature.index_);
+                if (negProb != null) {
+                    negOneProb += Math.log(negProb) / Math.log(2);
+                }
+            }
         }
         if(posOneProb >= negOneProb) {
             return new ClassificationLabel(1);

@@ -20,7 +20,7 @@ public class Classify {
     public static int max_decision_tree_depth = 4;
     public static double lambda = 1.0;
     public static int online_training_iterations = 1;
-    public static double online_learning_rate;
+    public static double online_learning_rate = 1.0;
     public static double thickness = 0.0;
 
     public static void main(String[] args) throws IOException {
@@ -34,7 +34,6 @@ public class Classify {
         String predictions_file = CommandLineUtilities.getOptionValue("predictions_file");
         String algorithm = CommandLineUtilities.getOptionValue("algorithm");
         String model_file = CommandLineUtilities.getOptionValue("model_file");
-        online_learning_rate = algorithm.equals("winnow") ? 2.0 : 1.0;
         if (CommandLineUtilities.hasArg("max_decision_tree_depth")) {
             max_decision_tree_depth = CommandLineUtilities.getOptionValueAsInt("max_decision_tree_depth");
         }
@@ -57,6 +56,7 @@ public class Classify {
                 System.out.println("Train requires the following arguments: data, algorithm, model_file");
                 System.exit(0);
             }
+            online_learning_rate = algorithm.equals("winnow") ? 2.0 : 1.0;
             // Load the training data.
             DataReader data_reader = new DataReader(data, true);
             List<Instance> instances = data_reader.readData();
@@ -64,7 +64,7 @@ public class Classify {
 
             // Train the model.
             Predictor predictor = train(instances, algorithm);
-            saveObject(predictor, model_file);		
+            saveObject(predictor, model_file);
 
         } else if (mode.equalsIgnoreCase("test")) {
             if (data == null || predictions_file == null || model_file == null) {

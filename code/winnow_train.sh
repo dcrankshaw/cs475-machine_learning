@@ -9,6 +9,6 @@ JAVA=`which java`
 CLASSPATH=.:~/cs475-machine_learning/commons-cli-1.2/commons-cli-1.2.jar:~/cs475-machine_learning/code/bin
 
 $JAVA -cp $CLASSPATH cs475.Classify -mode train -algorithm $1 \
-  -model_file model.$1.$2 -data ~/cs475-machine_learning/hw2/data/$2.train \
+  -model_file model.$1.$2 -data ~/cs475-machine_learning/data/$2.train \
   -thickness 0 -online_learning_rate 2 -online_training_iterations 1
 

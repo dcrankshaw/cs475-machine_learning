@@ -44,9 +44,9 @@ public abstract class LinearThresholdPredictor extends Predictor implements Seri
                         yHat = -1;
                     }
                     if (yHat == -1 && i.getLabel().equals(oneLabel)) {
-                            updateWeights(weights, -1, i);
-                    } else if ((yHat == 1) && !i.getLabel().equals(oneLabel)) {
                             updateWeights(weights, 1, i);
+                    } else if ((yHat == 1) && !i.getLabel().equals(oneLabel)) {
+                            updateWeights(weights, -1, i);
                     } else if (yHat == 0) {
                         if (i.getLabel().equals(oneLabel)) {
                             updateWeights(weights, 1, i);
