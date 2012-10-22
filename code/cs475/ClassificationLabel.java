@@ -14,6 +14,7 @@ public class ClassificationLabel extends Label implements Serializable {
 
         @Override
         public boolean equals(Object other) {
+
             if (!(other instanceof ClassificationLabel)) { return false; }
             ClassificationLabel otherLabel = (ClassificationLabel) other;
             return (otherLabel.getLabel() == label_);

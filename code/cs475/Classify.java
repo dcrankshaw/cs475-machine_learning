@@ -22,6 +22,7 @@ public class Classify {
     public static int online_training_iterations = 1;
     public static double online_learning_rate = 1.0;
     public static double thickness = 0.0;
+    public static 
 
     public static void main(String[] args) throws IOException {
         // Parse the command line.
