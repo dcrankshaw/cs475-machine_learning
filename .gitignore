@@ -9,6 +9,7 @@ predictions.*
 __MACOSX
 
 */META-INF/*
+*.MF
 .*.swp
 .DS_Store
 *.MF
