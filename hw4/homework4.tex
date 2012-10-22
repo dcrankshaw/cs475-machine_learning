@@ -1,0 +1,426 @@
+\documentclass[11pt]{article}
+
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{url}
+\usepackage{wrapfig}
+\usepackage{hyperref} 
+\usepackage{color}
+\usepackage{enumerate}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+
+\oddsidemargin 0mm
+\evensidemargin 5mm
+\topmargin -20mm
+\textheight 240mm
+\textwidth 160mm
+
+\newcommand{\vwi}{{\bf w}_i}
+\newcommand{\alphai}{\alpha_i}
+\newcommand{\vw}{{\bf w}}
+\newcommand{\va}{{\bf \alpha}}
+\newcommand{\vx}{{\bf x}}
+\newcommand{\vxi}{{\bf x}_i}
+\newcommand{\vxij}{{\bf x}_{ij}}
+\newcommand{\vt}{{\bf t}}
+\newcommand{\yh}{\hat{y}}
+\newcommand{\yi}{y_i}
+\newcommand{\X}{{\bf X}}
+\newcommand{\Y}{{\bf Y}}
+\newcommand{\msigma}{{\bf \Sigma}}
+\newcommand{\vmu}{{\bf \mu}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\el}{\mathcal{L}}
+\newcommand{\code}[1]{{\footnotesize \tt #1}}
+\newcommand{\pder}[2][]{\frac{\partial#1}{\partial#2}}
+
+
+
+\pagestyle{myheadings} 
+\markboth{Homework 4}{Fall 2012 CS 475 Machine Learning: Homework 4} 
+
+
+\title{CS 475 Machine Learning: Homework 4\\Online Learning, SVMs and Kernels\\
+\Large{Due: Wednesday October 24, 2012, 12:00pm}\\
+100 Points Total \hspace{1cm} Version 1.2}
+\author{}
+\date{}
+
+\begin{document}
+\large
+\maketitle
+\thispagestyle{headings}
+
+\vspace{-.5in}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Programming (50 points)}
+
+In this assignment, you will implement a kernelized version of logistic regression. Your implementation will train the model using a gradient ascent algorithm.
+
+
+\subsection{Review: Logistic Regression}
+
+The logistic regression model is used to model binary classification data. Logistic regression is a special case of generalized linear regression where the labels $Y$ are modeled as a linear combination of the data $X$, but in a transformed space specified by $g$, sometimes called the ``link function":
+\begin{equation}
+P(y=1 | \vx, \vw) = g(\vw \cdot \vx)
+\end{equation}
+\\
+This ``link function" allows you to model inherently non-linear data with a linear model. In the case of logistic regression, the link function is the logistic function:
+\begin{equation}
+g(z) = \frac{1}{1 + e^{-z}}
+\end{equation}
+
+\subsection{Kernel Logistic Regression}
+
+The above model relies on a linear function of weight parameters and instances: $\vw \cdot \vx$. However, some data can be highly non-linear, which is impossible to learn using a linear classifier. In class, we learned about the kernel trick, which uses the dual of a linear classifier for kernel learning. Kernels project data into high dimensional spaces in which a linear separator may exist. The decision boundary learned by the linear classifier is linear in the high dimensional space but non-linear in the original feature space.
+
+A kernel is a function which maps the input data into a new space using a basis function and computes the inner product between two basis functions. A kernel function is defined as:
+\[
+K(x, x') = (\phi(x) \cdot \phi(x')^T)
+\]
+
+In this assignment you will implement a dual version of the logistic regression model so that you can learn with a kernel. 
+In class, we derived the updates for the dual perceptron, and we learned that the linear function of weights $\vw$ and instances $\vx$ can be rewritten:
+\[
+\vw \cdot \vx = \sum_{i=1}^N \alpha_i \yi K(\vxi, \vx)
+\]
+This dual formulation also holds in logistic regression. Under the kernel logistic regression model, we have:
+
+\begin{align}
+P(y=1 | \vx, \va) &  =   g(\sum_{i=1}^N \alpha_i K(\vxi, \vx)) \\
+P(y=0 | \vx, \va) & =   1 - g(\sum_{i=1}^N \alpha_i K(\vxi, \vx))
+\end{align}
+
+Note that the $\yi$ terms from the Perceptron formula are not needed here.
+Instead of learning $\vw$, you will learn $\alphai$ for each example $\vxi$. The next subsection describes the learning procedure you will use.
+
+\subsubsection{Training with Gradient Ascent}
+
+In this assignment, we will solve for the parameters $\va$ in our logistic regression model using gradient ascent to find the maximum likelihood estimate.
+
+Gradient ascent is an optimization technique that is both very simple and powerful. This optimization algorithm works by taking the gradient of the objective function and taking steps in directions where the gradient is positive, which increases the objective function.\footnote{In machine learning, we can either maximize or minimize an objective. In this assignment, we are {\em maximizing} an objective function (likelihood) as part of maximum likelihood estimation. One might also want to {\em minimize} an objective function that we think of as a {\em loss} or {\em error}. In this case, the algorithm is called gradient {\bf descent}. You can trivially convert a maximization problem into a minimization problem by negating the objective function, so the terms gradient descent and gradient ascent are sometimes used interchangeably.}
+Under certain conditions, gradient ascent is guaranteed to asymptotically converge to a local maximum of the objective function (or a global maximum if the objective is convex). This strategy is often referred to as ``hill climbing.''
+
+Given a likelihood function $\ell(Y,X,\va)$, we need to compute the gradient $\nabla \ell(Y,X,\va)$. The partial derivative with respect to the parameter $\alpha_k$ is:
+
+\begin{equation}
+\pder[\ell]{\alpha_k} = \sum_{i=1}^{N} y_i g\left(-\textstyle \sum_{j=1}^{N} \alpha_j K(x_j, x_i)\right) \left(K(x_i, x_k)\right) 
++ (1 - y_i) g\left(\textstyle \sum_{j=1}^{N} \alpha_j K(x_j, x_i)\right) \left(-K(x_i, x_k)\right) 
+\end{equation}
+
+\noindent You can see how this is derived in the appendix of this handout.
+
+In gradient descent, the update rule is $\va'_j = \va_j + \eta \pder{\va_j}$ for all values of $j$ (one per training instance), where $\eta$ is called the {\em learning rate}. Choosing $\eta$ intelligently is a non-trivial task, and there are many ways to choose it in the literature. In this assignment, we will use a constant scalar $\eta$. See section \ref{sec:learning_rate} for more details. 
+
+This update is repeated for a given number of training iterations (see \ref{sec:iterations}).
+
+\subsubsection{Making Predictions}
+
+Given an instance $\vxi$, you can predict a label $\yi$ as the $y$ value with higher probability under the model. You should choose a prediction $\hat{\yi}$ according to:
+
+\begin{equation}
+\hat{\yi} = {\arg\max}_{y} P(y_i = y | \vxi, \va)
+\end{equation}
+
+In other words, if $g(\sum_{j=1}^N \alpha_j  K(\vx_j, \vx_i)) \ge 0.5$, you should predict $\yi$ to be 1, otherwise you predict $\yi$ to be 0.
+
+
+\subsubsection{Kernel Functions}
+
+You will implement three kernel functions for use with kernel logistic regression. Each version of the kernel logistic regression algorithm will be its own class, but it is highly recommended that most of the code be in a parent class: \code{KernelLogisticRegression} to avoid code duplication. Each subclass will overload and implement the necessary functions for their specific kernels.
+
+\begin{enumerate}
+\item Linear Kernel: $K(x, x') = (x \cdot x'^T)$
+
+Implement this algorithm as the \code{LinearKernelLogisticRegression} class. The command line argument for the \code{algorithm} parameter should be \code{logistic\_regression\_linear\_kernel}.
+
+\item Polynomial Kernel: $K(x, x') = (1 + (x x'^T))^d$
+
+Implement this algorithm as the \code{PolynomialKernelLogisticRegression} class. The command line argument for the \code{algorithm} parameter should be \code{logistic\_regression\_polynomial\_kernel}. The parameter $d$ is explained in section \ref{sec:kernel_parameters}.
+
+\item Gaussian Kernel: $K(x, x') = \exp(-|| x-x'||^2 / 2 \sigma^2)$
+
+Implement this algorithm as the \code{GaussianKernelLogisticRegression} class. The command line argument for the \code{algorithm} parameter should be \code{logistic\_regression\_gaussian\_kernel}. The parameter $\sigma$ is explained in section \ref{sec:kernel_parameters}.
+
+\end{enumerate}
+
+Note that the naive implementation may compute $K(x_i,x_j)$ many times during training. To improve training efficiency you should store (cache) computed values of $K(x_i,x_j)$ in a matrix, $G_{ij}=K(x_i, x_j)$. $G$ is called a Gram Matrix.
+
+
+
+
+\subsection{Implementation Details}
+
+\subsubsection{Kernel Parameters}
+\label{sec:kernel_parameters}
+
+The parameters $d$ for the polynomial kernel and $\sigma$ for the Gaussian kernel are set using command line options.
+
+For the polynomial kerne parameter $d$, add this command line option by adding the following code block to the \code{createCommandLineOptions} method of \code{Classify}.
+
+\begin{footnotesize}
+\begin{verbatim}
+registerOption("polynomial_kernel_exponent", "double", true, "The exponent of the polynomial kernel.");
+\end{verbatim}
+\end{footnotesize}
+
+You can then read the value from the command line by adding the following to the main method of \code{Classify}:
+\begin{footnotesize}
+\begin{verbatim}
+double polynomial_kernel_exponent = 2;
+if (CommandLineUtilities.hasArg("polynomial_kernel_exponent"))
+   polynomial_kernel_exponent = CommandLineUtilities.getOptionValueAsFloat("polynomial_kernel_exponent");
+\end{verbatim}
+\end{footnotesize}
+
+For the Gaussian kernel parameter $\sigma$, add this command line option by adding the following code block to the \code{createCommandLineOptions} method of \code{Classify}.
+
+\begin{footnotesize}
+\begin{verbatim}
+registerOption("gaussian_kernel_sigma", "double", true, "The sigma of the Gaussian kernel.");
+\end{verbatim}
+\end{footnotesize}
+
+You can then read the value from the command line by adding the following to the main method of \code{Classify}:
+\begin{footnotesize}
+\begin{verbatim}
+double gaussian_kernel_sigma = 1;
+if (CommandLineUtilities.hasArg("gaussian_kernel_sigma"))
+   gaussian_kernel_sigma = CommandLineUtilities.getOptionValueAsFloat("gaussian_kernel_sigma");
+\end{verbatim}
+\end{footnotesize}
+
+The default value for $d$ should be $2$ and the default value for $\sigma$ should be $1$.
+
+
+
+
+
+\subsubsection{Learning Rate}
+\label{sec:learning_rate}
+Your default value for $\eta$ should be $0.01$. You \emph{must} add a command line argument to allow this value to be adjusted via the command line. 
+
+Add this command line option by adding the following code to the \code{createCommandLineOptions} method of \code{Classify}.
+\begin{footnotesize}
+\begin{verbatim}
+registerOption("gradient_ascent_learning_rate", "double", true, "The learning rate for logistic regression.");
+\end{verbatim}
+\end{footnotesize}
+
+Be sure to add the option name exactly as it appears above. 
+You can then read the value from the command line by adding the following to the main method of \code{Classify}:
+\begin{footnotesize}
+\begin{verbatim}
+double gradient_ascent_learning_rate = 0.01;
+if (CommandLineUtilities.hasArg("gradient_ascent_learning_rate"))
+    gradient_ascent_learning_rate = 
+        CommandLineUtilities.getOptionValueAsFloat("gradient_ascent_learning_rate");
+\end{verbatim}
+\end{footnotesize}
+
+
+
+
+\subsubsection{Number of Training Iterations}
+\label{sec:iterations}
+
+We will define the number of times each algorithm iterates over all of the data by the parameter \code{gradient\_ascent\_training\_iterations}. You \emph{must} define a new command line option for this parameter. Use a default value of $5$ for this parameter.
+
+You can add this option by adding the following code to the \code{createCommandLineOptions} method of \code{Classify}.
+\begin{footnotesize}
+\begin{verbatim}
+registerOption("gradient_ascent_training_iterations", "int", true, "The number of training iterations.");
+\end{verbatim}
+\end{footnotesize}
+
+
+You can then read the value from the command line by adding the following to the main method of \code{Classify}:
+\begin{footnotesize}
+\begin{verbatim}
+int gradient_ascent_training_iterations = 5;
+if (CommandLineUtilities.hasArg("gradient_ascent_training_iterations"))
+    gradient_ascent_training_iterations = 
+         CommandLineUtilities.getOptionValueAsInt("gradient_ascent_training_iterations");
+\end{verbatim}
+\end{footnotesize}
+
+You should not change the order of examples. You must iterate over examples exactly as they appear in the data file, i.e. as provided by the data loader.
+
+
+
+
+\subsubsection{Initialization}
+
+You should initialize all $\alpha$ values to 0.
+
+
+\subsubsection{Numeric Stability}
+
+
+For all numerical calculations involving floating point numbers, use the {\tt double} type and NOT the {\tt float} type to store values.
+This will help in achieving numerical precision.
+
+
+\subsection{Data Sets}
+We are providing a new synthetic data set for this assignment called \code{Circle}. It may be helpful for testing your non-linear methods.
+
+
+
+\subsection{Appendix: Deriving the Gradient}
+
+In this section, we show how the gradient $\nabla \ell(Y,X,\va)$ is derived.
+We begin by writing the conditional likelihood:
+\begin{equation}
+P(Y \mid \va, X) = \prod_{i=1}^N{p(\yi \mid \va, \vxi)}
+\end{equation}
+
+Since $\yi \in \{ 0,1 \}$, we can write the conditional probability inside the product as:
+\begin{equation}
+P(Y \mid \va, X) = \prod_{i=1}^N{ p(\yi=1 \mid \va, \vxi)^{\yi} \times (1-p(\yi=0 \mid \va, \vxi))^{1-\yi}}
+\end{equation}
+Note that one of these terms in the product will have an exponent of 0, and will evaluate to 1.\\
+
+For ease of math and computation, we will take the log:
+\begin{equation}
+\ell(Y,X,\va) = \log P(Y \mid \va, X) = \sum_{i=1}^N{ \yi \log(p_{\yi=1}(\va, \vxi)) + (1-\yi)\log(p_{\yi=0}(\va, \vxi))}
+\end{equation}
+
+Plug in our logistic function $g$ for the probability that $y$ is 1:
+\begin{equation}
+\ell(Y,X,\va) = \sum_{i=1}^N{ y_i \log( g(\textstyle\sum_{j=1}^N \alpha_j K(\vx_j, \vx_i) ) ) + (1-y_i) \log( 1-g(\textstyle\sum_{j=1}^N \alpha_j K(\vx_j, \vx_i) ) )}
+\end{equation}
+
+To keep the notation clean, we will use the shorthand:
+\begin{equation}
+\kappa(\vxi) = \sum_{j=1}^N \alpha_j K(\vx_j, \vx_i)
+\end{equation}
+
+With this notation, we have:
+\begin{equation}
+\ell(Y,X,\va) = \sum_{i=1}^N{ y_i \log( g(\kappa(\vxi)  ) ) + (1-y_i) \log( 1-g(\kappa(\vxi)  ) )}
+\end{equation}
+
+Recall that the link function, $g$, is the logistic function. It has the nice property $1 - g(z) = g(-z)$.
+\begin{equation}
+\ell(Y,X,\va) = \sum_{i=1}^N{ y_i\ \log( g(\kappa(\vxi) ) ) + (1-y_i)\ \log( g(-\kappa(\vxi) ) )}
+\end{equation}
+
+We can now use the chain rule to take the gradient with respect to $\va$:
+\begin{equation}
+\nabla \ell(Y,X,\va) = \sum_{i=1}^N 
+	y_i\ \frac{1}{g\kappa(\vxi) )} \nabla g(\kappa(\vxi) ) 
+	 + (1-y_i)\ \frac{1}{g(-\kappa(\vxi))} \nabla g(-\kappa(\vxi)) 
+\end{equation}
+
+Since $\frac{\partial}{\partial z}g(z) = g(z)(1-g(z))$:
+\begin{eqnarray}
+\nabla \ell(Y,X,\va) &=& \sum_{i=1}^N 
+	 y_i\ \frac{1}{g(\kappa(\vxi) )} g(\kappa(\vxi)) (1-g(\kappa(\vxi) )) \nabla (\kappa(\vxi)) \\
+& & 	+ (1-y_i)\ \frac{1}{g(-\kappa(\vxi) )} g(-\kappa(\vxi) ) (1-g(-\kappa(\vxi) )) \nabla (-\kappa(\vxi) )
+\end{eqnarray}
+
+Simplify again using $1-g(z) = g(-z)$ and cancel terms
+\begin{equation}
+\nabla \ell(Y,X,\va) = \sum_{i=1}^N{
+	y_i g(-\kappa(\vxi) ) \nabla(\kappa(\vxi) )
+	+ (1-y_i) g(\kappa(\vxi) ) \nabla (-\kappa(\vxi) )
+}
+\end{equation}
+
+You can now get the partial derivatives (components of the gradient) out of this gradient function by:
+
+\begin{equation}
+\pder[\ell]{\alpha_k} = \sum_{i=1}^{N} y_i g\left(-\textstyle \sum_{j=1}^{N} \alpha_j K(x_j, x_i)\right) \left(K(x_i, x_k)\right) 
++ (1 - y_i) g\left(\textstyle \sum_{j=1}^{N} \alpha_j K(x_j, x_i)\right) \left(-K(x_i, x_k)\right) 
+\end{equation}
+
+\noindent because
+
+\begin{equation}
+\pder{\alpha_k}\kappa(\vx_i)  = \pder{\alpha_k}\left[ \textstyle\sum_{j=1}^N \alpha_j K(\vx_j, \vx_i) \right] = K(\vx_k, \vx_i).
+\end{equation}
+
+
+
+\section{Analytical (50 points)}
+
+The following problems consider a standard binary classification setting: we are given $n$ observations with $m$ features, $x_1,...,x_n \in \mathbb{R}^m$.
+
+\paragraph{1) Overfitting (10 points)}
+SVMs using nonlinear kernels usually have two tuning parameters (regularization parameter $C$ and kernel parameter $\gamma$), which are usually determined by cross validation. 
+\begin{enumerate}[(a)]
+\item Suppose we use cross validation to determine the non-linear kernel parameter and slack variable for an SVM. We find that classifiers using parameters $(c_1,\gamma_1)$ and $(c_2,\gamma_2)$ achieve the same cross validation error, but $(c_1,\gamma_1)$ leads to fewer support vectors than $(c_2,\gamma_2)$. Explain which set of parameters should we choose for the final model?
+\item The optimization problem of linear SVMs can be in either primal or dual form. As we know, the primal form has $m$ parameters to learn, while the dual form has $n$ parameters to learn. If $m \gg n$, is it true that the dual form reduces over-fitting since it has fewer parameters? Explain.
+\end{enumerate}
+
+\paragraph{2) Hinge Loss (10 points)}
+
+Linear SVMs can be formulated in an unconstrained optimization problem
+\begin{align}\label{SVM}
+\min_{w,b}\sum_{i=1}^n H(y_i(w^Tx_i)) + \lambda\|w\|_2^2,
+\end{align}
+where $\lambda$ is the regularization parameter and $H(a) = \max(1-a,0)$ is the well known hinge loss function. The hinge loss function can be viewed as a convex surrogate of the 0/1 loss function $I(a \leq 0)$.
+\begin{enumerate}[(a)]
+\item Prove that $H(a)$ is a convex function of $a$.
+\item The function $L(a) = \max(-a,0)$ can also approximate the 0/1 loss function. What is the disadvantage of using this function instead?
+\item If $H'(a) = \max(0.5-a,0)$, please show that there exists $\lambda'$ such that \eqref{SVMa} is equivalent to \eqref{SVM}
+\begin{align}\label{SVMa}
+\min_{w,b}\sum_{i=1}^n H'(y_i(w^Tx_i)) + \lambda'\|w\|_2^2.
+\end{align}
+\end{enumerate}
+
+\paragraph{3) Kernel Trick (12 points)}
+The kernel trick extends SVMs to handle with nonlinear data sets. However, an improper use of a kernel function can cause serious over-fitting. Consider the following kernels.
+\begin{enumerate}[(a)]
+\item Polynomial kernel: $K(x, x') = (1 + (x x'^T))^d$, where  $d\in\mathbb{N}$. Does increasing $d$ make over-fitting more or less likely?
+\item Gaussian kernel: $K(x, x') = \exp(-|| x-x'||^2 / 2 \sigma^2)$, where $\sigma>0$. Does increasing $\sigma$ make over-fitting more or less likely?
+\end{enumerate}
+We say $K$ is a kernel function, if there exists some transformation $\phi:\mathbb{R}^m\rightarrow \mathbb{R}^{m'}$ such that $K(x_i,x_{i'}) = \left<\phi(x_i),\phi(x_{i'})\right>$.
+\begin{enumerate}[(c)]
+\item Let $K_1$ and $K_2$ be two kernel functions. Prove that $K(x_i,x_{i'}) = K_1(x_i,x_{i'}) + K_2(x_i,x_{i'})$ is also a kernel function.
+\end{enumerate}
+
+\paragraph{4) Prediction using Kernel (8 points)} 
+One of the differences between linear SVMs and kernel SVMs concerns computational complexity at prediction time.
+\begin{enumerate}[(a)]
+\item What is the computational complexity of prediction of a linear SVM in terms of the examples $n$ and features $m$?
+\item What is the computational complexity of prediction of a non-linear SVM in terms of the examples $n$, features $m$ and support vectors $s$?
+\end{enumerate}
+
+\paragraph{5) Stochastic Gradient Algorithm (10 points)}
+
+The stochastic gradient algorithm is a very powerful optimization tool to solve many online learning problems. Instead of computing the gradient over the entire data set before making an update, the stochastic gradient algorithm computes the gradient over a single example, then updates the parameters. By passing over the entire data set in this fashion we can converge to the optimal parameters.
+
+A single iteration of stochastic gradient considers a single example. As a result, we know that stochastic gradient converges more slowly than gradient descent. While it takes many more iterations, each iteration is much faster, both in terms of memory and computation.
+
+Consider a ridge regression problem with $n$ samples:
+\begin{align}
+\hat{\beta} = \arg\min_{\beta}\frac{1}{n}\sum_{i=1}^n(y_i - x_i^T\beta)^2 + \lambda\|\beta\|_2^2.
+\end{align}
+In each iteration, instead of using only one example, we randomly choose $k$ out of $n$ samples and obtain $(x_{1'},y_{1'}),...,(x_{k'},y_{k'})$. 
+\begin{enumerate}[(a)]
+\item What is the computational complexity of computing the gradient at each iteration (using $k$ and $n$)?
+\item What are the advantages/disadvantages of increasing $k$ in terms of computational complexity (using $k$ and $n$)? What is traded-off by increasing/decreasing $k$?
+\item What is an example of an algorithm we learned in class that uses stochastic gradient? Explain.
+\end{enumerate}
+
+
+\section{What to Submit}
+In each assignment you will submit two things.
+\begin{enumerate}
+\item {\bf Code:} Your code as a zip file named {\tt library.zip}. {\bf You must submit source code (.java files)}. We will run your code using the exact command lines described above, so make sure it works ahead of time. Remember to submit all of the source code, including what we have provided to you.
+\item {\bf Writeup:} Your writeup as a {\bf PDF file} (compiled from latex) containing answers to the analytical questions asked in the assignment. Make sure to include your name in the writeup PDF and use the provided latex template for your answers.
+\end{enumerate}
+Make sure you name each of the files exactly as specified (library.zip and writeup.pdf).
+
+To submit your assignment, visit the ``Homework'' section of the website (\href{http://www.cs475.org/}{http://www.cs475.org/}.)
+
+\section{Questions?}
+Remember to submit questions about the assignment to the appropriate group on the class discussion board: \href{http://bb.cs475.org/}{http://bb.cs475.org}.
+
+\end{document}
+
+

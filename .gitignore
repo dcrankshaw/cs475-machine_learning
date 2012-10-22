@@ -11,6 +11,7 @@ __MACOSX
 */META-INF/*
 .*.swp
 .DS_Store
+*.MF
 
 # Latex files #
 *.aux
