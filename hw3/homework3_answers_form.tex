@@ -68,6 +68,14 @@
  where $h(x) = \frac{1}{\sigma \sqrt{2 \pi}} e^{-\frac{x^2}{2\sigma^2}}$, $\eta(\theta) = \frac{\mu}{\sigma^2}$, $T(x) = x$, and $A(\theta) = \frac{\mu^2}{2 \sigma^2}$.
 \end{enumerate}
 \item
+    To be honest, I'm a little unclear at what this question is getting at.
+    Here are some thoughts on the problem though. In our Poisson regression,
+    we need to model $P(Y | X, \theta) = Poisson(x \cdot \theta)$. We know that
+    the mean of the a Poisson Distribution is $\lambda = x \cdot \theta$, so we
+    can say the likelihood function $l(\lambda) = l(x \cdot \theta)$. However, I'm
+    not sure what information $\eta(\theta)$ being the log odds ratio for logistic
+    regression gives us, and what inferences about general exponential family distributions
+    we can make from that.
 
 \item
  We still call them linear models because the model itself is linear. It creates a separating hyperplane
@@ -75,7 +83,7 @@ and is a linear function of x. The non-linearity comes from passing the output o
 a potentially non-linear function (like the logistic function), generally to map the output to a specific range.
 \item
 If the data are linearly separable, then the maximum likelihood hyperplane occurs when the probability of
-predicting the correct class for the data goes to 1. That probability is
+predicting the correct class for the data goes to 1. That probability is 
 \begin{equation}
   P(Y=y_{c} | x) = \frac{1}{1 + e^{-w^T \cdot x}}
 \end{equation}
@@ -91,11 +99,11 @@ regularization will be finite.
 \paragraph{Question 2:}
 \begin{enumerate}[(a)]
 \item
-There are $2*2*d = 4d$ parameters used to describe this mixture. There are 2 paramaters, $\mu$ and $\sigma$,
+There are $2*2*d + 2 = 4d + 2$ parameters used to describe this mixture. There are 2 paramaters, $\mu$ and $\sigma$,
 to describe a univariate Gaussian distribution. We therefore need $2*d$ parameters to describe d of these
 distributions, one for each dimension. But because the data comes from a mixture of 2 multivariate Gaussian
 distributions, each dimension has 2 distributions associated with it, one from each model. That is where the last
-factor of 2 comes from.
+factor of 2 comes from. The extra 2 parameters are the mixing coefficients for each of the two mixtures.
 \item
 There are d paramaters used in logistic regression, one for each dimension (these are the indices of the weight vector \textbf{w}).
 There are $2*d$ parameters used in Naive Bayes ($P(X|Y = 0)$ and $P(X|Y = 1)$). Naive Bayes makes the assumption that the
