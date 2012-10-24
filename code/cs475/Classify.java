@@ -22,7 +22,8 @@ public class Classify {
     public static int online_training_iterations = 1;
     public static double online_learning_rate = 1.0;
     public static double thickness = 0.0;
-    public static 
+    public static double gradient_ascent_learning_rate = 0.01;
+    public static int gradient_ascent_training_iterations = 5;
 
     public static void main(String[] args) throws IOException {
         // Parse the command line.
@@ -48,7 +49,15 @@ public class Classify {
             online_learning_rate = CommandLineUtilities.getOptionValueAsFloat("online_learning_rate");
         }
         if (CommandLineUtilities.hasArg("thickness")) {
-          thickness = CommandLineUtilities.getOptionValueAsFloat("thickness");
+            thickness = CommandLineUtilities.getOptionValueAsFloat("thickness");
+        }
+        if (CommandLineUtilities.hasArg("gradient_ascent_training_iterations")) {
+            gradient_ascent_training_iterations =
+                CommandLineUtilities.getOptionValueAsInt("gradient_ascent_training_iterations");
+        }
+        if (CommandLineUtilities.hasArg("gradient_ascent_learning_rate")) {
+            gradient_ascent_learning_rate =
+                CommandLineUtilities.getOptionValueAsFloat("gradient_ascent_learning_rate");
         }
 
 
@@ -81,7 +90,7 @@ public class Classify {
             // Load the model.
             Predictor predictor = (Predictor)loadObject(model_file);
             if(predictor == null) {
-              System.out.println("Null predictor.");
+                System.out.println("Null predictor.");
             }
             evaluateAndSavePredictions(predictor, instances, predictions_file);
         } else {
@@ -102,12 +111,16 @@ public class Classify {
             predictor = new NaiveBayesPredictor(lambda);
         } else if (algorithm.equalsIgnoreCase("winnow")) {
             predictor = new WinnowPredictor(thickness,
-                                            online_learning_rate,
-                                            online_training_iterations);
+                    online_learning_rate,
+                    online_training_iterations);
         } else if (algorithm.equalsIgnoreCase("perceptron")) {
             predictor = new PerceptronPredictor(thickness,
-                                            online_learning_rate,
-                                            online_training_iterations);
+                    online_learning_rate,
+                    online_training_iterations);
+        } else if (algorithm.equalsIgnoreCase("logistic_regression_linear_kernel")) {
+            predictor = new LinearKernelLogisticRegressionPredictor(
+                    gradient_ascent_training_iterations,
+                    gradient_ascent_learning_rate);
         } else {
             System.out.println("No matching algorithm.");
             return null;
@@ -129,7 +142,7 @@ public class Classify {
         for (Instance instance : instances) {
             Label label = predictor.predict(instance);
             if (label == null) {
-              System.out.println("Predicted null label.");
+                System.out.println("Predicted null label.");
             }
             writer.writePrediction(label);
         }
@@ -141,8 +154,8 @@ public class Classify {
     public static void saveObject(Object object, String file_name) {
         try {
             ObjectOutputStream oos =
-                    new ObjectOutputStream(new BufferedOutputStream(
-                                new FileOutputStream(new File(file_name))));
+                new ObjectOutputStream(new BufferedOutputStream(
+                            new FileOutputStream(new File(file_name))));
             oos.writeObject(object);
             oos.close();
         }
@@ -191,6 +204,8 @@ public class Classify {
         registerOption("thickness", "double", true, "The value of the linear separator thickness.");
         registerOption("online_learning_rate", "double", true, "The LTU learning rate.");
         registerOption("online_training_iterations", "int", true, "The number of training iterations for LTU.");
+        registerOption("gradient_ascent_learning_rate", "double", true, "The learning rate for logistic regression.");
+        registerOption("gradient_ascent_training_iterations", "int", true, "The number of training iterations.");
 
         // Other options will be added here.
     }

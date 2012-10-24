@@ -9,12 +9,14 @@ public abstract class KernelLogisticRegressionPredictor extends Predictor implem
     private List<Instance> training_instances;
     private int iterations;
     private double learningRate;
+    HashMap<Pair<Integer, Integer>, Double> cachedKernels;
 
 
     public KernelLogisticRegressionPredictor(int iters, double rate) {
         alphas = new ArrayList<Double>();
         iterations = iters;
         learningRate = rate;
+        cachedKernels = new HashMap<Pair<Integer, Integer>, Double>();
     }
 
     // Static helper functions
@@ -23,19 +25,30 @@ public abstract class KernelLogisticRegressionPredictor extends Predictor implem
         return 1.0 / (1 + Math.exp(-1 * z));
     }
 
-    protected abstract double computeKernel(FeatureVector first, FeatureVector second);
+    protected abstract double computeKernel(FeatureVector first,
+                                            FeatureVector second);
 
-    protected abstract double computeTrainingKernel(FeatureVector first,
+    protected double computeTrainingKernel(FeatureVector first,
                                             int firstIndex,
                                             FeatureVector second,
-                                            int secondIndex);
+                                            int secondIndex) {
+        Pair<Integer, Integer> kernelIndex = new Pair<Integer, Integer>(
+                (firstIndex <= secondIndex ? firstIndex : secondIndex),
+                (firstIndex > secondIndex ? firstIndex : secondIndex));
+        Double kernel = cachedKernels.get(kernelIndex);
+        if (kernel == null) {
+            kernel = new Double(computeKernel(first, second));
+            cachedKernels.put(kernelIndex, kernel);
+        }
+        return kernel.doubleValue();
+    }
 
     public void train(List<Instance> instances) {
-        int numInstances = instances.size()
-                training_instances = instances;
+        int numInstances = instances.size();
+        training_instances = instances;
         // Initialize alphas
         for (int i = 0; i < numInstances; ++i) {
-            alphas.Add(new Double(0.0));
+            alphas.add(new Double(0.0));
         }
 
         for (int iter = 0; iter < iterations; ++iter) {
@@ -50,11 +63,11 @@ public abstract class KernelLogisticRegressionPredictor extends Predictor implem
                     double logisticFunctionArgument = 0;
                     for (int j = 0; j < numInstances; ++j) {
                         logisticFunctionArgument += alphas.get(j) * computeTrainingKernel(
-                                instances.get(j).getFeatureVector(), xi.getFeatureVector());
+                                instances.get(j).getFeatureVector(), j, xi.getFeatureVector(), i);
 
                     }
-                    double outsideKernel = computeTrainingKernel(xi.getFeatureVector(), xk.getFeatureVector());
-                    if (yi.GetLabel == 0) {
+                    double outsideKernel = computeTrainingKernel(xi.getFeatureVector(), i, xk.getFeatureVector(), k);
+                    if (yi.getLabel() == 0) {
                         outsideKernel = -1 * outsideKernel;
                     } else if (yi.getLabel() == 1) {
                         logisticFunctionArgument = -1 * logisticFunctionArgument;
