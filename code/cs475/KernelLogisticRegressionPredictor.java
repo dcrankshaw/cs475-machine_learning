@@ -5,7 +5,7 @@ import java.util.*;
 
 public abstract class KernelLogisticRegressionPredictor extends Predictor implements Serializable {
     private static final long serialVersionUID = 1L;
-    private List<Double> alphas;
+    private Map<Integer, Double> alphas;
     private List<Instance> training_instances;
     private int iterations;
     private double learningRate;
@@ -13,7 +13,7 @@ public abstract class KernelLogisticRegressionPredictor extends Predictor implem
 
 
     public KernelLogisticRegressionPredictor(int iters, double rate) {
-        alphas = new ArrayList<Double>();
+        alphas = new HashMap<Integer, Double>();
         iterations = iters;
         learningRate = rate;
         cachedKernels = new HashMap<Pair<Integer, Integer>, Double>();
@@ -48,12 +48,12 @@ public abstract class KernelLogisticRegressionPredictor extends Predictor implem
         training_instances = instances;
         // Initialize alphas
         for (int i = 0; i < numInstances; ++i) {
-            alphas.add(new Double(0.0));
+            alphas.put(new Integer(i), new Double(0.0));
         }
 
         for (int iter = 0; iter < iterations; ++iter) {
             // Make sure we keep track of our new alphas separately
-            List<Double> updatedAlphas = new ArrayList<Double>();
+            Map<Integer, Double> updatedAlphas = new HashMap<Integer, Double>();
             for (int k = 0; k < numInstances; ++k) {
                 double partial = 0;
                 Instance xk = instances.get(k);
@@ -79,7 +79,7 @@ public abstract class KernelLogisticRegressionPredictor extends Predictor implem
                     partial += logisticFunction(logisticFunctionArgument)*outsideKernel;
                 }
                 double updatedAlphaK = alphas.get(k) + learningRate*partial;
-                updatedAlphas.set(k, updatedAlphaK);
+                updatedAlphas.put(k, updatedAlphaK);
             }
             // Update our alphas to the newly computed ones
             alphas = updatedAlphas;
