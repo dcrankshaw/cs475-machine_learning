@@ -1,0 +1,357 @@
+\documentclass[11pt]{article}
+
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{url}
+\usepackage{wrapfig}
+\usepackage{hyperref} 
+\usepackage{color}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage{enumerate}
+\usepackage{amsmath,bm}
+\oddsidemargin 0mm
+\evensidemargin 5mm
+\topmargin -20mm
+\textheight 240mm
+\textwidth 160mm
+
+
+
+\newcommand{\vw}{{\bf w}}
+\newcommand{\vx}{{\bf x}}
+\newcommand{\vxi}{{\bf x}_i}
+\newcommand{\vxij}{{\bf x}_{ij}}
+\newcommand{\vt}{{\bf t}}
+\newcommand{\X}{{\mathbf X}}
+\newcommand{\Y}{{\bf Y}}
+\newcommand{\yh}{\hat{y}}
+\newcommand{\yi}{y_i}
+
+\def\P{\mathbb{P}}
+\def\E{\mathbb{E}}
+\def\R{\mathbb{R}}
+\newcommand{\msigma}{{\bf \Sigma}}
+\newcommand{\vmu}{{\bf \mu}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\el}{\mathcal{L}}
+\newcommand{\code}[1]{{\footnotesize \tt #1}}
+\renewcommand{\baselinestretch}{1.2}
+\pagestyle{myheadings} 
+\markboth{Homework 4}{Fall 2012 CS 475 Machine Learning: Homework 4}
+
+
+\title{CS 475 Machine Learning: Homework 4\\Generalized Linear Models\\
+100 Points Total \hspace{1cm} Version 1.0}
+
+\author{}
+\date{}
+
+\begin{document}
+\large
+\maketitle
+\thispagestyle{headings}
+
+\vspace{-.5in}
+\section{Programming (50 points)}
+In this assignment you will write two learning algorithms: a Naive Bayes classifier, and a Perceptron classifier. Both classifiers need only support binary prediction.
+
+\subsection{Naive Bayes}
+Implement a Naive Bayes classifier using the maximum likelihood solutions presented in class. A few details will help your
+implementation:
+
+\paragraph{Continuous features}
+The Naive Bayes equations naturally handle binary features. 
+For continuous features, select the mean of the feature {\em in the entire training set}. If a feature's value is \emph{less than or equal to} the mean, pretend as if feature A is observed. If the feature's value is \emph{greater than} the mean, pretend as if feature B is observed. Therefore, each continuous feature will be split into two features (A and B). Remember, for computing the mean value of a feature, examples in which the feature does not appear have value $0$ for that feature. Remember, you can determine binary features by examining features in the data that only appear with value $1$ or $0$.
+
+
+\paragraph{New Features} There may be new features encountered at test time that are not present in the training data. For simplicity, skip these features when creating predictions.\\
+
+
+Note that there is no bias term in this version and you should \emph{not} include one in your solution.Implement this algorithm as the \code{NaiveBayesPredictor} class. Your Naive Bayes classifier should be selected by passing the string {\tt naive\_bayes} as the argument for {\tt algorithm.} 
+
+\subsubsection{Smoothing}
+
+Naive Bayes is prone to overfitting because test instances with rare or unobserved features could be assigned unfairly low probabilities for some or all labels. 
+Therefore, you will {\em smooth} your probability estimates using a technique commonly called add-$\lambda$ smoothing. Smoothing these distributions is simple: increase each feature/label count by $\lambda$, for some real-valued $\lambda \ge 0$. For this reason, the $\lambda$ terms are often referred to as {\em pseudocounts}, because you are pretending to count each feature/label more than actually observed. This makes it so that unseen features will still have some probability mass at test time.
+When $\lambda=1$, this is called Laplacian smoothing (or simply +1 smoothing). 
+
+Remember to adjust the normalization constants accordingly so that your probabilities still sum to 1. You should smooth both $p(x|y)$ and $p(y)$.
+
+
+
+You {\em must} add a command line argument to allow $\lambda$ to be adjusted via the command line. The default value should be 1.0.
+Add this command line option by adding the following code to the \code{createCommandLineOptions} method of \code{Classify}.
+\begin{footnotesize}
+\begin{verbatim}
+registerOption("lambda", "double", true, "The level of smoothing for Naive Bayes.");
+\end{verbatim}
+\end{footnotesize}
+
+You can then read the value from the command line by adding the following to the main method of \code{Classify}:
+\begin{footnotesize}
+\begin{verbatim}
+double lambda = 1.0;
+if (CommandLineUtilities.hasArg("lambda"))
+    lambda = CommandLineUtilities.getOptionValueAsFloat("lambda");
+\end{verbatim}
+\end{footnotesize}
+
+
+
+\subsubsection{Making Predictions}
+
+When making predictions using the learned Naive Bayes model, you should use the following prediction rule: choose the label $y$ which satisfies
+
+\begin{displaymath}
+\arg\max_{y \in \{-1,1\}} p(y) \prod_{j \in \vx} p(x_j | y)
+\end{displaymath}
+
+\noindent where the product is over the features contained in the instance $\vx$. In the case of a tie, let $y=1$.
+
+\paragraph{Handling Underflow} Notice that the prediction rule involves a product of multiple terms which may have values close to zero. If you repeatedly multiply small values together, this product will quickly shrink, and the floating point is likely to underflow. The most common way to deal with this issue is to convert the product into a summation by taking the log of the probabilities. Recall that $\arg\max_{x} f(x) = \arg\max_{x} \log f(x)$, \noindent because $\log(x)$ monotonically increases with $x$. As you learned in class, this property is also exploited in maximum likelihood estimation, where the goal is to maximize the log-likelihood, because it is analytically easier to work with log probabilities. The prediction rule you should use is thus:
+
+\begin{displaymath}
+\arg\max_{y \in \{-1,1\}} \log(p(y)) +  \sum_{j \in \vx} \log(p(x_j | y))
+\end{displaymath}
+
+
+\subsubsection{Running Code}
+We will evaluate your algorithm by running the following commands:
+\begin{footnotesize}
+\begin{verbatim}
+java cs475.Classify -mode train -algorithm naive_bayes -model_file speech.naive_bayes.model \
+                     -data speech.train
+\end{verbatim}
+\end{footnotesize}
+To run the trained model on development data:
+\begin{footnotesize}
+\begin{verbatim}
+java cs475.Classify -mode test -model_file speech.naive_bayes.model -data speech.dev \
+                     -predictions_file speech.dev.naive_bayes.predictions
+\end{verbatim}
+\end{footnotesize}
+
+
+\subsection{Linear Threshold Classification: Perceptron and Winnow}
+
+Perceptron and Winnow are mistake-driven online learning algorithms for linear classifiers. They take as input a vector of real-valued inputs $\vx$ and make a prediction $\yh \in \{-1,+1\}$ (for this assignment we consider only binary labels). Predictions are made using a linear classifier known as a linear threshold unit (LTU): $\yh = \textrm{sign}((\vw \cdot \vx) - \beta)$, with a scalar threshold $\beta$. The term $\vw \cdot \vx$ is the dot product of $\vw$ and $\vx$ computed as $\sum_i x_i  w_i$. An LTU says that if this dot product is greater than the threshold $\beta$ then the prediction is $+1$; if the dot product is less than the threshold $\beta$, the prediction is $-1$.
+
+Updates to $\vw$ are made only when a prediction is incorrect: $\yh \ne y$. The new weight vector $\vw'$ is a function of the current weight vector $\vw$ and example $(\vx, y)$. The weight vector is updated so as to improve the prediction on the current example. The only difference between Perceptron and Winnow is the update rule: Perceptron uses additive updates, while Winnow uses multiplicative updates (explained below). Note that these algorithms naturally handle both continuous and binary features, so no special processing is needed.
+
+\subsubsection{Basic Algorithm}
+\label{sec:algorithm}
+
+The basic structure of the linear threshold based algorithms is:
+\begin{enumerate}
+\item Initialize $\vw$, set learning rate $\eta$, threshold $\beta$, and number of iterations $I$
+\item For each training iteration $k = 1 \ldots I$:
+	\begin{enumerate}
+	\item For each example $i=1\ldots N$:
+	\begin{enumerate}
+		\item Receive an example $\vxi$
+		\item  \label{prediction_rule} Predict the label $\hat{\yi}  =\left\{
+		     \begin{array}{lr}
+		       1 ~~  \textrm{if} ~~ \vw \cdot \vxi \ge \beta  \\
+		       -1 ~~  \textrm{if} ~~ \vw \cdot \vxi < \beta  
+		     \end{array}
+		   \right.$
+		\item \label{update_step} If  $\hat{\yi} \ne \yi$, make an update to $\vw$. The update $\vw'$ depends on the specific algorithm (described below).
+		\end{enumerate}
+	\end{enumerate}
+\end{enumerate}
+
+\subsubsection{Thick Separators}
+\label{sec:thickness}
+
+The basic linear threshold algorithm tries to learn weights $\vw$ so that $\vw \cdot \vx$ is always on the correct side of the threshold $\beta$. It can be desirable to enforce a {\em thick separator} during training. In this setting, not only do we want $\vw \cdot \vx$ to be on the correct side of $\beta$, but we want it to be far away from $\beta$: sufficiently larger than $\beta$ for positive labels, and sufficiently smaller than $\beta$ for negative labels.
+This can reduce the chance of overfitting, because the algorithm will learn a separator that is far from all of the training instances -- this is related to the principle of max-margin classification.
+
+The prediction rule in step \ref{prediction_rule} should be replaced with:
+
+\vspace{0.5cm}
+$\hat{\yi} =  \left\{
+     \begin{array}{lr}
+       1 ~~  \textrm{if} ~~ \vw \cdot \vxi \ge \beta + \tau  \\
+       -1 ~~  \textrm{if} ~~ \vw \cdot \vxi \le \beta - \tau  \\
+       0 ~~ \textrm{otherwise}
+     \end{array}
+   \right.$
+\vspace{0.5cm}
+
+
+This rule uses a user-supplied thickness parameter $\tau \ge 0$. This is equivalent to the basic algorithm in section \ref{sec:algorithm} when $\tau=0$.
+
+If $\hat{\yi}=0$, it is considered an incorrect label, because $\yi \in \{-1,+1\}$. This means that if the value of $\vw \cdot \vxi$ falls within the bounds of the separator $(-\tau,\tau)$, it will be treated as a misclassification.
+
+You {\em must} add a command line argument to allow $\tau$ to be adjusted via the command line. The default value should be 0.
+Add this command line option by adding the following code to the \code{createCommandLineOptions} method of \code{Classify}.
+\begin{footnotesize}
+\begin{verbatim}
+registerOption("thickness", "double", true, "The value of the linear separator thickness.");
+\end{verbatim}
+\end{footnotesize}
+
+You can then read the value from the command line by adding the following to the main method of \code{Classify}:
+\begin{footnotesize}
+\begin{verbatim}
+double thickness = 0.0;
+if (CommandLineUtilities.hasArg("thickness"))
+    thickness = CommandLineUtilities.getOptionValueAsFloat("thickness");
+\end{verbatim}
+\end{footnotesize}
+
+\subsubsection{Perceptron}
+
+The Perceptron algorithm is based on {\em additive} updates to train the weight vector $\vw$. The update rule (step \ref{update_step})  for Perceptron is: $\vw' = \vw + \eta \yi \vxi$.
+
+
+The threshold $\beta$ should be set to 0 for Perceptron. 
+The weights should be initialized to 0: $\vw = {\bf 0}$.
+
+Implement this algorithm as the \code{PerceptronPredictor} class. Note that there is no bias term in this version and you should \emph{not} include one in your solution. Your Perceptron predictor will be selected by passing the string \code{perceptron} as the argument for the algorithm parameter.
+
+\subsubsection{Winnow}
+
+The Winnow algorithm is based on {\em multiplicative} updates to train the weight vector $\vw$. The update rule (step \ref{update_step}) for Winnow is: $\vw' = \vw \times \eta^{\yi s_i}$, where $s_i=1$ if $\vxi \ge 0$ and $s_i=-1$ if $\vxi < 0$. That is, $s_i = \textrm{sign}(\vxi)$. 
+
+
+The threshold $\beta$ should be set to $\frac{N}{2}$ for Winnow, where $N$ is the number of training instances. 
+
+The weights should be initialized to 1: $\vw = {\bf 1}$.
+
+Implement this algorithm as the \code{WinnowPredictor} class. Note that there is no bias term in this version and you should \emph{not} include one in your solution. Your Winnow predictor will be selected by passing the string \code{winnow} as the argument for the algorithm parameter.
+
+\paragraph{Handling Overflow} As the algorithm proceeds, it is possible that the weights for certain features will repeatedly be multiplied by $\eta$. This could blow up: if a weight is increased too many times, eventually the floating point will overflow. 
+We will ask you to handle this by taking a simple approach of cropping the value of a weight if it gets too high. That is, if you ever make an update $\vw'$ which is higher than some upper bound $\mu$, then you should simply set $\vw' = \mu$. This will prevent the weight from becoming arbitrarily large. The upper bound $\mu$ should be set to: \code{1.0e6}.\footnote{You should be aware that it is also possible to handle overflow by working with the log of the weights rather than the weights directly, in the same way that you work with log probabilities to avoid underflow in Naive Bayes. However, if you work with weights in log space, then you must also perform predictions $\textrm{sign}((\vw \cdot \vx) - \beta)$ in log space. In addition to taking the log of products (which simply becomes a sum), this also involves working with the log of sums, which is not as straightforward. We are instead asking you to simply crop the weights, since it is trickier to implement Winnow in log space.}
+
+\subsubsection{Learning Rate}
+Perceptron and Winnow use a learning rate $\eta$, where  $0 < \eta \leq 1$ for Perceptron and $1 < \eta \leq 2$ for Winnow.  Your default value for $\eta$ should be $1$ for Perceptron and $2$ for Winnow. You \emph{must} add a command line argument to allow this value to be adjusted via the command line. 
+
+Add this command line option by adding the following code to the \code{createCommandLineOptions} method of \code{Classify}.
+\begin{footnotesize}
+\begin{verbatim}
+registerOption("online_learning_rate", "double", true, "The LTU learning rate.");
+\end{verbatim}
+\end{footnotesize}
+
+Be sure to add the option name exactly as it appears above. A common mistake is to change underscores to dashes.
+
+You can then read the value from the command line by adding the following to the main method of \code{Classify}:
+\begin{footnotesize}
+\begin{verbatim}
+double online_learning_rate = algorithm.equals("winnow") ? 2.0 : 1.0;
+if (CommandLineUtilities.hasArg("online_learning_rate"))
+    online_learning_rate = CommandLineUtilities.getOptionValueAsFloat("online_learning_rate");
+\end{verbatim}
+\end{footnotesize}
+
+\subsubsection{Number of training iterations}
+Since we will be running these online methods in the batch setting, you can iterate multiple times over the data. This can improve performance by increasing the number of updates each algorithm makes. We will define the number of times each algorithm iterates over the data by the parameter \code{online\_training\_iterations}. You \emph{must} define a new command line option for this parameter. Use a default value of $1$ for this parameter.
+
+You can add this option by adding the following code to the \code{createCommandLineOptions} method of \code{Classify}.
+\begin{footnotesize}
+\begin{verbatim}
+registerOption("online_training_iterations", "int", true, "The number of training iterations for LTU.");
+\end{verbatim}
+\end{footnotesize}
+
+
+You can then read the value from the command line by adding the following to the main method of \code{Classify}:
+\begin{footnotesize}
+\begin{verbatim}
+int online_training_iterations = 1;
+if (CommandLineUtilities.hasArg("online_training_iterations"))
+    online_training_iterations = CommandLineUtilities.getOptionValueAsInt("online_training_iterations");
+\end{verbatim}
+\end{footnotesize}
+
+
+
+
+\subsection{Implementation Details}
+
+Because Perceptron and Winnow are so similar, you could end up duplicating code unnecessarily. We recommend implementing an {\em abstract} class called \code{LinearThresholdPredictor}, which implements the general algorithm described in sections \ref{sec:algorithm} and \ref{sec:thickness}. The classes \code{PerceptronPredictor} and \code{WinnowPredictor} would extend this class to fill in the specific update rules and $\beta$ values.
+
+For all numerical calculations involving floating point numbers, use the {\tt double} type and NOT the {\tt float} type to store values.
+This will help in achieving numerical precision.
+
+
+
+\section{Analytical (50 points)}
+\paragraph{1) Basic Concepts (20 points)}
+Generalized linear models (GLMs), especially logistic regression are heavily used by banks, credit card companies and insurance companies. Actually, when you apply for a credit card, banks may put your information into a logistic regression model to decide whether you are eligible.
+\begin{enumerate}[(a)]
+\item The GLMs are closely related to the exponential distribution family, which has the probability density/mass function $f(X=x; \theta)$ in the form
+\begin{align}
+f(X=x; \theta) = h(x)e^{\eta(\theta)\cdot T(x)-A(\theta)},
+\end{align}
+where $h,\eta,T,A$ are some known functions. Given 
+\begin{description}
+\item (1) the probability mass function of the binomial distribution (assume that $n$ is given)
+\begin{align}
+f(X=x; p) = {{n}\choose{x}}p^x(1-p)^{n-x},~x\in\{0,1,...,n\};
+\end{align}
+\item (2) the probability mass function of the Poisson distribution
+\begin{align}
+f(X=x; \lambda) = \frac{\lambda^xe^{-\lambda}}{x!};
+\end{align}
+\item (3) the probability density function of the Gaussian distribution (assume that $\sigma$ is given)
+\begin{align}
+f(X=x; \mu) = \frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{(x-\mu)^2}{2\sigma^2}}
+\end{align}
+\end{description}
+Please show that these three distributions belong to the exponential family.
+
+\item  We see that $\eta(\theta)$ for the binomial distribution is exactly the log-odds-ratio in the logistic regression. That is why that the logistic regression is also called binomial regression. Therefore given $\eta(\theta)$ for the Poisson distribution, and $n$ observations $(x_i, y_i)_{i=1}^n$, what is the log-likelihood function for the Poisson regression?
+
+\item The GLMs often contain some transformation, which is non-linear such as the log-odds-ratio transformation in the logistic regression. Why do we still call them ``linear"?
+
+\item For logistic regression, if the data are linear separable, please show that the maximum of the log-likelihood function is $+\infty$. By imposing $\ell_1$ or square norm constraint on $\beta$, we can make the maximum likelihood estimation feasible. Why?
+
+\end{enumerate}
+
+\paragraph{2) Naive Bayes v.s. Logistic Regression (10 points)}
+People use naive Bayes and logistic regression as illustrative examples to compare generative and discriminative models.
+\begin{enumerate}[(a)]
+\item In a classification problem, we assume that the data come from a mixture of two $d$-dimensional Gaussian distributions (each Gaussian distribution represents a class). How many and what parameters are used to describe such a mixture?
+\item How many parameters are used in logistic regression?  How many parameters are used in naive Bayes? What assumption does naive Bayes make to reduce the number of the parameters?
+\item What is the difference between generative and discriminative models in terms of their likelihood functions?
+\end{enumerate}
+
+\paragraph{3) Missing Values (10 points)} 
+
+One advantage of naive Bayes over the logistic regression is that it can handle missing values in the data (i.e. not knowing the value of a specific feature). Given a trained naive Bayes classifier, show how to calculate $\mathbb{P}(Y, X_1, X_2, ..., X_{d-1})$ where $X_d$ is unknown. Assume $Y \in \{0,1\}$ and $X_j \in \{1,2,...,K\}$ where $j=1,...,d$. [Hint: The conditional probability in naive Bayes can be completely factorized.]
+
+\paragraph{4) Add-$\lambda$ Smoothing (10 points)} 
+
+When training a naive Bayes classifier, it is possible to assign zero values to some conditional probabilities. Given $n$ observations, $(x_i,y_i)_{i=1}^n$, where $x_i = (x_{i1},...,x_{id})$, we then have
+\begin{align}\label{original-one}
+\hat{\mathbb{P}}(X_j=x|Y=y) = \frac{\sum_{i=1}^nI(x_{ij}=x,y_i=y)}{\sum_{i=1}^nI(y_i=y)}.
+\end{align}
+where $I(x_{ij}=x,y_i=y)$ is the indicator function that is $1$ iff the $j$th feature in the $i$th example has value $x$ and the label for the $i$th example is $y$.
+
+For example, if $\sum_{i=1}^nI(x_{ij}=1,y_i=0)=0$, then $\hat{\mathbb{P}}(X_j=x|Y=y) = 0$. While some people prefer to use a different estimator
+\begin{align}\label{add-one}
+\hat{\mathbb{P}}(X_j=x|Y=y) = \frac{\lambda+\sum_{i=1}^nI(x_{ij}=x,y_i=y)}{K\lambda+\sum_{i=1}^nI(y_i=y)}.
+\end{align}
+\eqref{add-one} is is so-called ``add-$\lambda$ smoothing" procedure. What role does $\lambda$ play in terms of the bias variance tradeoff? 
+
+
+
+\section{What to Submit}
+In each assignment you will submit two things.
+\begin{enumerate}
+\item {\bf Code:} Your code as a zip file named {\tt library.zip}. {\bf You must submit source code (.java files)}. We will run your code using the exact command lines described above, so make sure it works ahead of time. Remember to submit all of the source code, including what we have provided to you.
+\item {\bf Writeup:} Your writeup as a {\bf PDF file} (compiled from latex) containing answers to the analytical questions asked in the assignment. Make sure to include your name in the writeup PDF and use the provided latex template for your answers.
+\end{enumerate}
+Make sure you name each of the files exactly as specified (library.zip and writeup.pdf).
+
+To submit your assignment, visit the ``Homework'' section of the website (\href{http://www.cs475.org/}{http://www.cs475.org/}.)
+
+\section{Questions?}
+Remember to submit questions about the assignment to the appropriate group on the class discussion board: \href{http://bb.cs475.org/}{http://bb.cs475.org}.
+
+\end{document}
+
