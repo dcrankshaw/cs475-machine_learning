@@ -9,8 +9,9 @@
 #datasets[4]='nlp'
 #datasets[5]='speech'
 #datasets[6]='vision'
-datasets=( circle bio finance nlp speech vision hard easy)
-#datasets=(easy)
+#datasets=( circle bio finance nlp speech vision hard easy)
+#datasets=( circle bio finance speech vision hard easy)
+datasets=(nlp)
 
 # CLASSIFIER=$1
 CLASSIFIER=logistic_regression_linear_kernel

@@ -5,18 +5,16 @@ import java.util.*;
 
 public abstract class KernelLogisticRegressionPredictor extends Predictor implements Serializable {
     private static final long serialVersionUID = 1L;
-    private Map<Integer, Double> alphas;
+    private double[] alphas;
     private List<Instance> training_instances;
     private int iterations;
     private double learningRate;
-    HashMap<Pair<Integer, Integer>, Double> cachedKernels;
+    //HashMap<Pair<Integer, Integer>, Double> cachedKernels;
 
 
     public KernelLogisticRegressionPredictor(int iters, double rate) {
-        alphas = new HashMap<Integer, Double>();
         iterations = iters;
         learningRate = rate;
-        cachedKernels = new HashMap<Pair<Integer, Integer>, Double>();
     }
 
     // Static helper functions
@@ -31,42 +29,55 @@ public abstract class KernelLogisticRegressionPredictor extends Predictor implem
     protected double computeTrainingKernel(FeatureVector first,
                                             int firstIndex,
                                             FeatureVector second,
-                                            int secondIndex) {
-        Pair<Integer, Integer> kernelIndex = new Pair<Integer, Integer>(
-                (firstIndex <= secondIndex ? firstIndex : secondIndex),
-                (firstIndex > secondIndex ? firstIndex : secondIndex));
-        Double kernel = cachedKernels.get(kernelIndex);
+                                            int secondIndex,
+                                            Double[][] cache) {
+        int row = firstIndex < secondIndex ? firstIndex : secondIndex;
+        int col = firstIndex >= secondIndex ? firstIndex : secondIndex;
+        Double kernel = cache[row][col];
         if (kernel == null) {
             kernel = new Double(computeKernel(first, second));
-            cachedKernels.put(kernelIndex, kernel);
+            cache[row][col] = kernel;
+
+        } else {
+            //System.out.println("Found cached kernel: " + row + "," + col);
         }
         return kernel.doubleValue();
     }
 
     public void train(List<Instance> instances) {
         int numInstances = instances.size();
+        Double[][] cachedKernels = new Double[numInstances][numInstances];
         training_instances = instances;
         // Initialize alphas
-        for (int i = 0; i < numInstances; ++i) {
-            alphas.put(new Integer(i), new Double(0.0));
-        }
-
+        alphas = new double[numInstances];
         for (int iter = 0; iter < iterations; ++iter) {
             // Make sure we keep track of our new alphas separately
-            Map<Integer, Double> updatedAlphas = new HashMap<Integer, Double>();
+            double[] updatedAlphas = new double[numInstances];
+            double[] kappas = new double[numInstances];
+            for (int i = 0; i < numInstances; ++i) {
+                Instance xi = instances.get(i);
+                double kappa = 0;
+                double logisticFunctionArgument = 0;
+                for (int j = 0; j < numInstances; ++j) {
+                    kappa += alphas[j] * computeTrainingKernel(
+                            instances.get(j).getFeatureVector(), j, xi.getFeatureVector(), i, cachedKernels);
+
+                }
+                kappas[i] = kappa;
+            }
             for (int k = 0; k < numInstances; ++k) {
                 double partial = 0;
                 Instance xk = instances.get(k);
                 for (int i = 0; i < numInstances; ++i) {
                     Instance xi = instances.get(i);
                     ClassificationLabel yi = (ClassificationLabel) xi.getLabel();
-                    double logisticFunctionArgument = 0;
-                    for (int j = 0; j < numInstances; ++j) {
-                        logisticFunctionArgument += alphas.get(j) * computeTrainingKernel(
-                                instances.get(j).getFeatureVector(), j, xi.getFeatureVector(), i);
-
-                    }
-                    double outsideKernel = computeTrainingKernel(xi.getFeatureVector(), i, xk.getFeatureVector(), k);
+                    double logisticFunctionArgument = kappas[i];
+//                    for (int j = 0; j < numInstances; ++j) {
+//                        logisticFunctionArgument += alphas[j] * computeTrainingKernel(
+//                                instances.get(j).getFeatureVector(), j, xi.getFeatureVector(), i, cachedKernels);
+//
+//                    }
+                    double outsideKernel = computeTrainingKernel(xi.getFeatureVector(), i, xk.getFeatureVector(), k, cachedKernels);
                     if (yi.getLabel() == 0) {
                         outsideKernel = -1 * outsideKernel;
                     } else if (yi.getLabel() == 1) {
@@ -78,8 +89,8 @@ public abstract class KernelLogisticRegressionPredictor extends Predictor implem
                     }
                     partial += logisticFunction(logisticFunctionArgument)*outsideKernel;
                 }
-                double updatedAlphaK = alphas.get(k) + learningRate*partial;
-                updatedAlphas.put(k, updatedAlphaK);
+                double updatedAlphaK = alphas[k] + learningRate*partial;
+                updatedAlphas[k] = updatedAlphaK;
             }
             // Update our alphas to the newly computed ones
             alphas = updatedAlphas;
@@ -91,7 +102,7 @@ public abstract class KernelLogisticRegressionPredictor extends Predictor implem
         for (int j = 0; j < training_instances.size(); ++j) {
             double kernel = computeKernel(training_instances.get(j).getFeatureVector(),
                                           instance.getFeatureVector());
-            arg += alphas.get(j)*kernel;
+            arg += alphas[j]*kernel;
         }
         double result = logisticFunction(arg);
         if (result < 0.5) {
