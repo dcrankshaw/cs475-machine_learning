@@ -23,7 +23,9 @@ public abstract class KernelLogisticRegressionPredictor extends Predictor implem
         return 1.0 / (1 + Math.exp(-1 * z));
     }
 
-    protected abstract double computeKernel(FeatureVector first,
+    protected abstract double computeKernel(FeatureVector first, FeatureVector second);
+
+    protected abstract double computeTrainingKernel(FeatureVector first,
                                             int firstIndex,
                                             FeatureVector second,
                                             int secondIndex);
@@ -47,11 +49,11 @@ public abstract class KernelLogisticRegressionPredictor extends Predictor implem
                     ClassificationLabel yi = (ClassificationLabel) xi.getLabel();
                     double logisticFunctionArgument = 0;
                     for (int j = 0; j < numInstances; ++j) {
-                        logisticFunctionArgument += alphas.get(j) * computeKernel(
+                        logisticFunctionArgument += alphas.get(j) * computeTrainingKernel(
                                 instances.get(j).getFeatureVector(), xi.getFeatureVector());
 
                     }
-                    double outsideKernel = computeKernel(xi.getFeatureVector(), xk.getFeatureVector());
+                    double outsideKernel = computeTrainingKernel(xi.getFeatureVector(), xk.getFeatureVector());
                     if (yi.GetLabel == 0) {
                         outsideKernel = -1 * outsideKernel;
                     } else if (yi.getLabel() == 1) {
@@ -69,11 +71,20 @@ public abstract class KernelLogisticRegressionPredictor extends Predictor implem
             // Update our alphas to the newly computed ones
             alphas = updatedAlphas;
         }
-
-
-
-
     }
 
-    public abstract Label predict(Instance instance);
+    public Label predict(Instance instance) {
+        double arg = 0;
+        for (int j = 0; j < training_instances.size(); ++j) {
+            double kernel = computeKernel(training_instances.get(j).getFeatureVector(),
+                                          instance.getFeatureVector());
+            arg += alphas.get(j)*kernel;
+        }
+        double result = logisticFunction(arg);
+        if (result < 0.5) {
+            return new ClassificationLabel(0);
+        } else {
+            return new ClassificationLabel(1);
+        }
+    }
 }
