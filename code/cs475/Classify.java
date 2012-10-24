@@ -24,6 +24,8 @@ public class Classify {
     public static double thickness = 0.0;
     public static double gradient_ascent_learning_rate = 0.01;
     public static int gradient_ascent_training_iterations = 5;
+    public static double polynomial_kernel_exponent = 2.0;
+    public static double gaussian_kernel_sigma = 1.0;
 
     public static void main(String[] args) throws IOException {
         // Parse the command line.
@@ -58,6 +60,12 @@ public class Classify {
         if (CommandLineUtilities.hasArg("gradient_ascent_learning_rate")) {
             gradient_ascent_learning_rate =
                 CommandLineUtilities.getOptionValueAsFloat("gradient_ascent_learning_rate");
+        }
+        if (CommandLineUtilities.hasArg("polynomial_kernel_exponent")) {
+            polynomial_kernel_exponent = CommandLineUtilities.getOptionValueAsFloat("polynomial_kernel_exponent");
+        }
+        if (CommandLineUtilities.hasArg("gaussian_kernel_sigma")) {
+            gaussian_kernel_sigma = CommandLineUtilities.getOptionValueAsFloat("gaussian_kernel_sigma");
         }
 
 
@@ -121,6 +129,16 @@ public class Classify {
             predictor = new LinearKernelLogisticRegressionPredictor(
                     gradient_ascent_training_iterations,
                     gradient_ascent_learning_rate);
+        } else if (algorithm.equalsIgnoreCase("logistic_regression_polynomial_kernel")) {
+            predictor = new PolynomialKernelLogisticRegressionPredictor(
+                    gradient_ascent_training_iterations,
+                    gradient_ascent_learning_rate,
+                    polynomial_kernel_exponent);
+        } else if (algorithm.equalsIgnoreCase("logistic_regression_gaussian_kernel")) {
+            predictor = new GaussianKernelLogisticRegressionPredictor(
+                    gradient_ascent_training_iterations,
+                    gradient_ascent_learning_rate,
+                    gaussian_kernel_sigma);
         } else {
             System.out.println("No matching algorithm.");
             return null;
@@ -206,6 +224,8 @@ public class Classify {
         registerOption("online_training_iterations", "int", true, "The number of training iterations for LTU.");
         registerOption("gradient_ascent_learning_rate", "double", true, "The learning rate for logistic regression.");
         registerOption("gradient_ascent_training_iterations", "int", true, "The number of training iterations.");
+        registerOption("polynomial_kernel_exponent", "double", true, "The exponent of the polynomial kernel.");
+        registerOption("gaussian_kernel_sigma", "double", true, "The sigma of the Gaussian kernel.");
 
         // Other options will be added here.
     }

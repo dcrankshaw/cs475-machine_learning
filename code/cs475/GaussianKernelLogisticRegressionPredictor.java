@@ -3,44 +3,18 @@ package cs475;
 import java.io.Serializable;
 import java.util.*;
 
-public class LinearKernelLogisticRegressionPredictor extends KernelLogisticRegressionPredictor {
+public class GaussianKernelLogisticRegressionPredictor extends KernelLogisticRegressionPredictor {
 
     private double sigma;
 
-    public LinearKernelLogisticRegressionPredictor(int iters, double rate, double s) {
+    public GaussianKernelLogisticRegressionPredictor(int iters, double rate, double s) {
         super(iters, rate);
         sigma = s;
     }
 
     protected double computeKernel(FeatureVector first, FeatureVector second) {
+
         double norm = 0;
-        Iterator<Feature> firstIter = first.iterator();
-        boolean updateFirst = true;
-        Iterator<Feature> secondIter = second.iterator();
-        boolean updateSecond = true;
-        Feature firstFeature = null;
-        Feature secondFeature = null;
-        while(firstIter.hasNext() || secondIter.hasNext()) {
-            if (updateFirst) {
-                firstFeature = firstIter.next();
-            }
-            if (updateSecond) {
-                secondFeature = secondIter.next()
-            }
-
-        }
-
-
-
-
-
-
-
-
-
-
-
-        double kernel = 0;
         Iterator<Feature> firstIter = first.iterator();
         boolean updateFirst = true;
         Iterator<Feature> secondIter = second.iterator();
@@ -60,32 +34,59 @@ public class LinearKernelLogisticRegressionPredictor extends KernelLogisticRegre
                 updateFirst = true;
                 updateSecond = true;
                 if (firstFeature.index_ == secondFeature.index_) {
-                    kernel += firstFeature.value_ * secondFeature.value_;
+                    double diff = firstFeature.value_ - secondFeature.value_;
+                    norm += diff*diff;
                 } else if (firstFeature.index_ < secondFeature.index_) {
+                    norm += firstFeature.value_*firstFeature.value_;
                     while (firstIter.hasNext()) {
                         firstFeature = firstIter.next();
                         if (firstFeature.index_ == secondFeature.index_) {
-                            kernel += firstFeature.value_ * secondFeature.value_;
+                            double diff = firstFeature.value_ - secondFeature.value_;
+                            norm += diff*diff;
                             break;
                         } else if (firstFeature.index_ > secondFeature.index_) {
                             updateFirst = false;
                             break;
+                        } else {
+                            norm += firstFeature.value_*firstFeature.value_;
                         }
                     }
                 } else if (secondFeature.index_ < firstFeature.index_) {
+                    norm += secondFeature.value_*secondFeature.value_;
                     while (secondIter.hasNext()) {
                         secondFeature = secondIter.next();
-                        if (secondFeature.index_ == firstFeature.index_) {
-                            kernel += firstFeature.value_ * secondFeature.value_;
+                        if (firstFeature.index_ == secondFeature.index_) {
+                            double diff = firstFeature.value_ - secondFeature.value_;
+                            norm += diff*diff;
                             break;
-                        } else if (secondFeature.index_ > firstFeature.index_) {
+                        } else if (firstFeature.index_ < secondFeature.index_) {
                             updateSecond = false;
                             break;
+                        } else {
+                            norm += secondFeature.value_*secondFeature.value_;
                         }
                     }
                 }
+
+            }
+            //will only go into one of these loops
+            while (firstIter.hasNext() || !updateFirst) {
+                if (updateFirst) {
+                    firstFeature = firstIter.next();
+                }
+                updateFirst = true;
+                norm += firstFeature.value_*firstFeature.value_;
+            }
+            while (secondIter.hasNext() || !updateSecond) {
+                if (updateSecond) {
+                    secondFeature = secondIter.next();
+                }
+                updateSecond = true;
+                norm += secondFeature.value_*secondFeature.value_;
             }
         }
+        double exponent = -1.0*norm/(2*sigma*sigma);
+        double kernel = Math.exp(exponent);
         return kernel;
     }
 }
