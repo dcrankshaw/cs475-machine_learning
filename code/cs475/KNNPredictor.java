@@ -27,103 +27,39 @@ public abstract class KNNPredictor extends Predictor {
 
     public abstract Label predict(Instance instance);
 
-    public TreeMap<Instance, Double> findKNearestNeighbors(Instance current) {
+    public List<Neighbor> findKNearestNeighbors(Instance current) {
         // Map of distance to Instance
-        TreeMap<Double, Instance> neighbors = new TreeMap<Double, Instance>();
+        List<Neighbor> neighbors = new ArrayList<Neighbor>();
+        Neighbor furthestNeighbor = null;
         for (Instance train : trainingInstances) {
             //TODO when running predictions on the training data we don't want to use
             //the instance to predict itself
-            double distance = computeDistance(current.getFeatureVector(), train.getFeatureVector());
+            if (train.equals(current)) {
+                continue;
+            }
+            Neighbor currentNeighbor = new Neighbor(train, current, seenFeatures);
+            if (furthestNeighbor == null) {
+                furthestNeighbor = currentNeighbor;
+            }
             if (neighbors.size() < k_) {
-                neighbors.put(new Double(distance), train);
-            } else if (neighbors.lastKey() > distance) {
-                neighbors.remove(neighbors.lastKey());
-                neighbors.put(new Double(distance), train);
+                neighbors.add(currentNeighbor);
+                if (furthestNeighbor.getDistance() < currentNeighbor.getDistance()) {
+                    furthestNeighbor = currentNeighbor;
+                }
+            } else if (furthestNeighbor.getDistance() > currentNeighbor.getDistance()) {
+                //replace furthest neighbor with new neighbor
+                neighbors.remove(furthestNeighbor);
+                neighbors.add(currentNeighbor);
+                // find the new furthest neigbor
+                furthestNeighbor = neighbors.get(0);
+                for (Neighbor n : neighbors) {
+                    if (furthestNeighbor.getDistance() < n.getDistance()) {
+                        furthestNeighbor = n;
+                    }
+                }
             }
         }
         return neighbors;
     }
-
-    public double computeDistance(FeatureVector test, FeatureVector train) {
-        double norm = 0;
-        Iterator<Feature> testIter = test.iterator();
-        boolean updateTest = true;
-        Iterator<Feature> trainIter = train.iterator();
-        boolean updateTrain = true;
-        if (testIter.hasNext() && trainIter.hasNext()) {
-            Feature testFeature = testIter.next();
-            updateTest = false;
-            Feature trainFeature = trainIter.next();
-            updateTrain = false;
-            while ((testIter.hasNext() || !updateTest) && (trainIter.hasNext() || !updateTrain)) {
-                if (updateTest) {
-                    testFeature = testIter.next();
-                }
-                if (updateTrain) {
-                    trainFeature = trainIter.next();
-                }
-                updateTest = true;
-                updateTrain = true;
-                if (testFeature.index_ == trainFeature.index_) {
-                    double diff = testFeature.value_ - trainFeature.value_;
-                    norm += diff*diff;
-                } else if (testFeature.index_ < trainFeature.index_) {
-                    if (seenFeatures.contains(testFeature.index_)) {
-                        norm += testFeature.value_*testFeature.value_;
-                    }
-                    while (testIter.hasNext()) {
-                        testFeature = testIter.next();
-                        if (testFeature.index_ == trainFeature.index_) {
-                            double diff = testFeature.value_ - trainFeature.value_;
-                            norm += diff*diff;
-                            break;
-                        } else if (testFeature.index_ > trainFeature.index_) {
-                            updateTest = false;
-                            break;
-                        } else {
-                            if (seenFeatures.contains(testFeature.index_)) {
-                                norm += testFeature.value_*testFeature.value_;
-                            }
-                        }
-                    }
-                } else if (trainFeature.index_ < testFeature.index_) {
-                    norm += trainFeature.value_*trainFeature.value_;
-                    while (trainIter.hasNext()) {
-                        trainFeature = trainIter.next();
-                        if (testFeature.index_ == trainFeature.index_) {
-                            double diff = testFeature.value_ - trainFeature.value_;
-                            norm += diff*diff;
-                            break;
-                        } else if (testFeature.index_ < trainFeature.index_) {
-                            updateTrain = false;
-                            break;
-                        } else {
-                            norm += trainFeature.value_*trainFeature.value_;
-                        }
-                    }
-                }
-
-            }
-            //will only go into one of these loops
-            while (testIter.hasNext() || !updateTest) {
-                if (updateTest) {
-                    testFeature = testIter.next();
-                }
-                updateTest = true;
-                if (seenFeatures.contains(testFeature.index_)) {
-                    norm += testFeature.value_*testFeature.value_;
-                }
-            }
-            while (trainIter.hasNext() || !updateTrain) {
-                if (updateTrain) {
-                    trainFeature = trainIter.next();
-                }
-                updateTrain = true;
-                norm += trainFeature.value_*trainFeature.value_;
-            }
-        }
-        return Math.sqrt(norm);
-    }
-
 
 }
