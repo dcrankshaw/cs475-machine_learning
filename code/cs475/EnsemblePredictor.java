@@ -9,17 +9,18 @@ public abstract class EnsemblePredictor extends Predictor {
     protected int numClassifiers;
     protected double learningRate;
     protected int numIterations;
+    protected ArrayList<EnsembleSubClassifier> classifiers;
 
     public EnsemblePredictor(int kEnsemble, double rate, int T) {
         numClassifiers = kEnsemble;
         learningRate = rate;
         numIterations = T;
+        classifiers = new ArrayList<EnsembleSubClassifier>(numClassifiers);
     }
 
     public void train(List<Instance> instances) {
-        HashMap<Integer, PerceptronPredictor> predictors = trainSubclassifiers(numClassifiers);
+        HashMap<Integer, PerceptronPredictor> predictors = trainSubclassifiers(instances);
 
-        ArrayList<EnsembleSubClassifier> classifiers = new ArrayList<EnsembleSubClassifier>(numClassifiers);
         for (Integer index : predictors.keySet()) {
             EnsembleSubClassifier current =
                 new EnsembleSubClassifier(predictors.get(index), 0, index, learningRate);
@@ -28,15 +29,7 @@ public abstract class EnsemblePredictor extends Predictor {
 
         for (int t = 0; t < numIterations; ++t) {
             for (Instance xi : instances) {
-                double sum = 0;
-                for (EnsembleSubClassifier currentClassifier : classifiers) {
-                    sum += currentClassifier.computeSubPrediction(xi);
-                }
-                int prediction = 0;
-                if (sum >= 0) {
-                    prediction = 1;
-                }
-                ClassificationLabel yHat = new ClassificationLabel(prediction);
+                ClassificationLabel yHat = makePrediction(xi);
                 for (EnsembleSubClassifier currentClassifier : classifiers) {
                     currentClassifier.updateWeight(xi, yHat);
                 }
@@ -44,8 +37,22 @@ public abstract class EnsemblePredictor extends Predictor {
         }
     }
 
-    public abstract HashMap<Integer, PerceptronPredictor> trainSubclassifiers(int k);
+    public abstract HashMap<Integer, PerceptronPredictor> trainSubclassifiers(List<Instance> instances);
 
 
-    public abstract Label predict(Instance instance);
+    private ClassificationLabel makePrediction(Instance instance) {
+        double sum = 0;
+        for (EnsembleSubClassifier currentClassifier : classifiers) {
+            sum += currentClassifier.computeSubPrediction(instance);
+        }
+        int prediction = 0;
+        if (sum >= 0) {
+            prediction = 1;
+        }
+        return new ClassificationLabel(prediction);
+    }
+
+    public Label predict(Instance instance) {
+     return (Label) makePrediction(instance);
+    }
 }

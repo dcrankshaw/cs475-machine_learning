@@ -35,6 +35,13 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
         }
     }
 
+    // removes the feature at the given index
+    // returns the removed feature, or null if the feature
+    // was not there
+    public Feature remove(int index) {
+        return vector.remove(index);
+    }
+
     public Feature getFeature(int index) {
         return vector.get(index);
     }
