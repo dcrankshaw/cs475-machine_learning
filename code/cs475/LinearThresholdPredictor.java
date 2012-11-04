@@ -23,6 +23,10 @@ public abstract class LinearThresholdPredictor extends Predictor implements Seri
         mu = Math.pow(10.0, 6);
     }
 
+    public TreeMap<Integer, Double> getWeights() {
+        return weights;
+    }
+
 
     public void train(List<Instance> instances) {
         int maxDim = 0;

@@ -76,7 +76,11 @@ public class Classify {
             }
             online_learning_rate = algorithm.equals("winnow") ? 2.0 : 1.0;
             // Load the training data.
-            DataReader data_reader = new DataReader(data, true);
+            boolean classification = true;
+            if (algorithm.equalsIgnoreCase("knn") || algorithm.equalsIgnoreCase("knn_distance")) {
+                classification = false;
+            }
+            DataReader data_reader = new DataReader(data, classification);
             List<Instance> instances = data_reader.readData();
             data_reader.close();
 
@@ -91,7 +95,11 @@ public class Classify {
             }
 
             // Load the test data.
-            DataReader data_reader = new DataReader(data, true);
+            boolean classification = true;
+            if (algorithm.equalsIgnoreCase("knn") || algorithm.equalsIgnoreCase("knn_distance")) {
+                classification = false;
+            }
+            DataReader data_reader = new DataReader(data, classification);
             List<Instance> instances = data_reader.readData();
             data_reader.close();
 
