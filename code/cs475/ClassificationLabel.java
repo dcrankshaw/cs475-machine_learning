@@ -4,15 +4,15 @@ import java.io.Serializable;
 
 public class ClassificationLabel extends Label implements Serializable {
 
-        private int label_;
-	public ClassificationLabel(int label) {
-                label_ = label;
-	}
+    private int label_;
+    public ClassificationLabel(int label) {
+        label_ = label;
+    }
 
-        public int getLabel() { return label_; }
+    public int getLabel() { return label_; }
 
 
-        @Override
+    @Override
         public boolean equals(Object other) {
 
             if (!(other instanceof ClassificationLabel)) { return false; }
@@ -20,15 +20,15 @@ public class ClassificationLabel extends Label implements Serializable {
             return (otherLabel.getLabel() == label_);
         }
 
-        @Override
+    @Override
         public int hashCode() {
             Integer labelInteger = new Integer(label_);
             return labelInteger.hashCode();
         }
 
-	@Override
-	public String toString() {
-		return Integer.toString(label_);
-	}
+    @Override
+        public String toString() {
+            return Integer.toString(label_);
+        }
 
 }

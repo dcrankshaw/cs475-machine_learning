@@ -2,7 +2,8 @@
 
 # $1 is the classifier
 
-datasets=( circle bio finance nlp speech vision hard easy)
+#datasets=( bio finance nlp speech vision hard easy)
+datasets=(bio easy finance hard speech vision nlp)
 
 # CLASSIFIER=$1
 CLASSIFIER=instance_bagging

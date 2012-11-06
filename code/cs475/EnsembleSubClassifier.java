@@ -1,9 +1,9 @@
 package cs475;
 
-//import java.io.Serializable;
+import java.io.Serializable;
 //import java.util.*;
 
-public class EnsembleSubClassifier {
+public class EnsembleSubClassifier implements Serializable {
 
     private PerceptronPredictor classifier;
     private double weight;
