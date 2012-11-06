@@ -19,7 +19,7 @@ public abstract class EnsemblePredictor extends Predictor {
 
 
     public void train(List<Instance> instances) {
-        HashMap<Integer, PerceptronPredictor> predictors = trainSubclassifiers(instances);
+        HashMap<Integer, PerceptronPredictor> predictors = trainSubClassifiers(instances);
 
         for (Integer index : predictors.keySet()) {
             EnsembleSubClassifier current =

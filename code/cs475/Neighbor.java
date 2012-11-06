@@ -1,7 +1,7 @@
 package cs475;
 
 import java.util.*;
-import java.util.Serializable;
+import java.io.Serializable;
 
 // simple wrapper class to wrap a neighbor and a distance for KNN predictors
 
@@ -19,6 +19,7 @@ public class Neighbor {
         distance = computeDistance(test.getFeatureVector(), neighbor.getFeatureVector());
     }
     
+
     public Instance getNeighbor() { return neighbor; }
     public Instance getTestInstance() { return test; }
     public double getDistance() { return distance; }
@@ -106,7 +107,6 @@ public class Neighbor {
         return Math.sqrt(norm);
     }
 
-    public 
 
 
 }

@@ -34,9 +34,9 @@ public abstract class KNNPredictor extends Predictor {
         for (Instance train : trainingInstances) {
             //TODO when running predictions on the training data we don't want to use
             //the instance to predict itself
-            if (train.equals(current)) {
+            /*if (train.equals(current)) {
                 continue;
-            }
+            }*/
             Neighbor currentNeighbor = new Neighbor(train, current, seenFeatures);
             if (furthestNeighbor == null) {
                 furthestNeighbor = currentNeighbor;

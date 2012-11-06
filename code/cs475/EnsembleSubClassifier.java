@@ -1,7 +1,7 @@
 package cs475;
 
-import java.io.Serializable;
-import java.util.*;
+//import java.io.Serializable;
+//import java.util.*;
 
 public class EnsembleSubClassifier {
 
@@ -25,7 +25,8 @@ public class EnsembleSubClassifier {
 
         if (!yHat.equals(x.getLabel())) {
             double dotProd = classifier.dotProduct(classifier.getWeights(), x);
-            if (x.getLabel().getLabel() == 1) {
+            ClassificationLabel classLabel = (ClassificationLabel) x.getLabel();
+            if (classLabel.getLabel() == 1) {
                 weight = weight + learningRate * computeActivationFunction(dotProd);
             } else {
                 weight = weight - learningRate * computeActivationFunction(dotProd);
@@ -42,7 +43,6 @@ public class EnsembleSubClassifier {
         double dotProd = classifier.dotProduct(classifier.getWeights(), x);
         return weight * computeActivationFunction(dotProd);
 
-    
     }
 
 
