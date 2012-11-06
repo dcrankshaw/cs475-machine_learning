@@ -26,10 +26,14 @@ public class Classify {
     public static int gradient_ascent_training_iterations = 5;
     public static double polynomial_kernel_exponent = 2.0;
     public static double gaussian_kernel_sigma = 1.0;
+    public static int k_nn = 5;
+    public static int k_ensemble = 5;
+    public static double ensemble_learning_rate = 0.1;
+    public static int ensemble_training_iterations = 5;
 
     public static void main(String[] args) throws IOException {
         // Parse the command line.
-        String[] mandatory_args = { "mode"};
+        String[] mandatory_args = { "mode", "algorithm"};
         createCommandLineOptions();
         CommandLineUtilities.initCommandLineParameters(args, Classify.options, mandatory_args);
 
@@ -66,6 +70,18 @@ public class Classify {
         }
         if (CommandLineUtilities.hasArg("gaussian_kernel_sigma")) {
             gaussian_kernel_sigma = CommandLineUtilities.getOptionValueAsFloat("gaussian_kernel_sigma");
+        }
+        if (CommandLineUtilities.hasArg("k_nn")) {
+            k_nn = CommandLineUtilities.getOptionValueAsInt("k_nn");
+        }
+        if (CommandLineUtilities.hasArg("k_ensemble")) {
+            k_ensemble = CommandLineUtilities.getOptionValueAsInt("k_ensemble");
+        }
+        if (CommandLineUtilities.hasArg("ensemble_learning_rate")) {
+            ensemble_learning_rate = CommandLineUtilities.getOptionValueAsFloat("ensemble_learning_rate");
+        }
+        if (CommandLineUtilities.hasArg("ensemble_training_iterations")) {
+            ensemble_training_iterations = CommandLineUtilities.getOptionValueAsInt("ensemble_training_iterations");
         }
 
 
@@ -116,6 +132,7 @@ public class Classify {
 
     private static Predictor train(List<Instance> instances, String algorithm) {
         Predictor predictor;
+        boolean regression = false;
 
         if (algorithm.equalsIgnoreCase("majority")) {
             predictor = new MajorityPredictor();
@@ -147,15 +164,35 @@ public class Classify {
                     gradient_ascent_training_iterations,
                     gradient_ascent_learning_rate,
                     gaussian_kernel_sigma);
+        } else if (algorithm.equalsIgnoreCase("knn")) {
+            predictor = new SimpleKNNPredictor(k_nn);
+            regression = true;
+        } else if (algorithm.equalsIgnoreCase("knn_distance")) {
+            predictor = new DistanceWeightedKNNPredictor(k_nn);
+            regression = true;
+        } else if (algorithm.equalsIgnoreCase("instance_bagging")) {
+            predictor = new EnsembleInstanceBaggingPredictor(
+                    k_ensemble,
+                    ensemble_learning_rate,
+                    ensemble_training_iterations);
+        } else if (algorithm.equalsIgnoreCase("feature_bagging")) {
+            predictor = new EnsembleFeatureBaggingPredictor(
+                    k_ensemble,
+                    ensemble_learning_rate,
+                    ensemble_training_iterations);
         } else {
             System.out.println("No matching algorithm.");
             return null;
         }
         predictor.train(instances);
         //Evaluate training data
-        double trainEvaluation = AccuracyEvaluator.evaluate(instances, predictor);
-        System.out.println("Training Evaluation: " + trainEvaluation);
-        System.out.println();
+        if (regression) {
+            System.out.println("Accuracy evalutation for regression not implemented");
+        } else {
+            double trainEvaluation = AccuracyEvaluator.evaluate(instances, predictor);
+            System.out.println("Training Evaluation: " + trainEvaluation);
+            System.out.println();
+        }
         return predictor;
     }
 
@@ -234,7 +271,10 @@ public class Classify {
         registerOption("gradient_ascent_training_iterations", "int", true, "The number of training iterations.");
         registerOption("polynomial_kernel_exponent", "double", true, "The exponent of the polynomial kernel.");
         registerOption("gaussian_kernel_sigma", "double", true, "The sigma of the Gaussian kernel.");
+        registerOption("k_nn", "int", true, "The value of K for KNN regression.");
+        registerOption("k_ensemble", "int", true, "The number of classifiers in the ensemble.");
+        registerOption("ensemble_learning_rate", "double", true, "The ensemble learning rate.");
+        registerOption("ensemble_training_iterations", "int", true, "The number of ensemble training iterations.");
 
-        // Other options will be added here.
     }
 }
