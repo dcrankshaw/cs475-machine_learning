@@ -124,7 +124,7 @@ public class Classify {
             if(predictor == null) {
                 System.out.println("Null predictor.");
             }
-            evaluateAndSavePredictions(predictor, instances, predictions_file);
+            evaluateAndSavePredictions(predictor, instances, predictions_file, classification);
         } else {
             System.out.println("Requires mode argument.");
         }
@@ -187,9 +187,12 @@ public class Classify {
         predictor.train(instances);
         //Evaluate training data
         if (regression) {
-            System.out.println("Accuracy evalutation for regression not implemented");
+            double trainEvaluation = AccuracyEvaluator.evaluateRegression(instances, predictor);
+            System.out.println("Training Evaluation: " + trainEvaluation);
+            System.out.println();
+
         } else {
-            double trainEvaluation = AccuracyEvaluator.evaluate(instances, predictor);
+            double trainEvaluation = AccuracyEvaluator.evaluateClassification(instances, predictor);
             System.out.println("Training Evaluation: " + trainEvaluation);
             System.out.println();
         }
@@ -197,9 +200,14 @@ public class Classify {
     }
 
     private static void evaluateAndSavePredictions(Predictor predictor,
-            List<Instance> instances, String predictions_file) throws IOException {
+            List<Instance> instances, String predictions_file, boolean classification) throws IOException {
         PredictionsWriter writer = new PredictionsWriter(predictions_file);
-        double testEvaluation = AccuracyEvaluator.evaluate(instances, predictor);
+        double testEvaluation;
+        if (classification) {
+            testEvaluation = AccuracyEvaluator.evaluateClassification(instances, predictor);
+        } else {
+            testEvaluation = AccuracyEvaluator.evaluateRegression(instances, predictor);
+        }
         System.out.println("Testing Evaluation: " + testEvaluation);
 
         for (Instance instance : instances) {
