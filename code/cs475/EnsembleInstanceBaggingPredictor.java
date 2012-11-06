@@ -1,9 +1,10 @@
 package cs475;
 
-import java.io.Serializable;
 import java.util.*;
 
 public class EnsembleInstanceBaggingPredictor extends EnsemblePredictor {
+
+	private static final long serialVersionUID = 1L;
 
     public EnsembleInstanceBaggingPredictor(int kEnsemble, double rate, int T) {
         super(kEnsemble, rate, T);

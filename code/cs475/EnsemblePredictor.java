@@ -1,7 +1,6 @@
 package cs475;
 
-import java.io.Serializable;
-import java.util.List;
+import java.util.*;
 
 public abstract class EnsemblePredictor extends Predictor {
     private static final long serialVersionUID = 1L;
@@ -17,6 +16,7 @@ public abstract class EnsemblePredictor extends Predictor {
         numIterations = T;
         classifiers = new ArrayList<EnsembleSubClassifier>(numClassifiers);
     }
+
 
     public void train(List<Instance> instances) {
         HashMap<Integer, PerceptronPredictor> predictors = trainSubclassifiers(instances);
@@ -37,7 +37,7 @@ public abstract class EnsemblePredictor extends Predictor {
         }
     }
 
-    public abstract HashMap<Integer, PerceptronPredictor> trainSubclassifiers(List<Instance> instances);
+    public abstract HashMap<Integer, PerceptronPredictor> trainSubClassifiers(List<Instance> instances);
 
 
     private ClassificationLabel makePrediction(Instance instance) {

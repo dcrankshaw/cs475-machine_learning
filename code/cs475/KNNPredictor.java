@@ -1,6 +1,5 @@
 package cs475;
 
-import java.io.Serializable;
 import java.util.*;
 
 public abstract class KNNPredictor extends Predictor {
@@ -9,6 +8,7 @@ public abstract class KNNPredictor extends Predictor {
     protected List<Instance> trainingInstances;
     protected int k_;
     protected HashSet<Integer> seenFeatures;
+
 
     public KNNPredictor(int numNeighbors) {
         k_ = numNeighbors;

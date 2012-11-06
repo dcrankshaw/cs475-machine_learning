@@ -1,9 +1,11 @@
 package cs475;
 
-import java.io.Serializable;
 import java.util.*;
 
 public class EnsembleFeatureBaggingPredictor extends EnsemblePredictor {
+
+	private static final long serialVersionUID = 1L;
+
     public EnsembleFeatureBaggingPredictor(int kEnsemble, double rate, int T) {
         super(kEnsemble, rate, T);
     }
@@ -20,7 +22,7 @@ public class EnsembleFeatureBaggingPredictor extends EnsemblePredictor {
                         featureSubset.add(f.index_, f.value_);
                     }
                 }
-                instanceSubset.add(new Instance(featureSubset, f.getLabel()));
+                instanceSubset.add(new Instance(featureSubset, instance.getLabel()));
             }
             currentPerceptron.train(instanceSubset);
             perceptrons.put(k, currentPerceptron);

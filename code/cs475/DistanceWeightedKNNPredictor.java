@@ -5,8 +5,10 @@ import java.util.*;
 
 public class DistanceWeightedKNNPredictor extends KNNPredictor {
 
+	private static final long serialVersionUID = 1L;
+
     public DistanceWeightedKNNPredictor(int numNeighbors) {
-        super(numNeigbors);
+        super(numNeighbors);
     }
 
     public Label predict(Instance instance) {
@@ -17,8 +19,9 @@ public class DistanceWeightedKNNPredictor extends KNNPredictor {
         }
         double neighborSum = 0;
         for (Neighbor neighbor : neighbors) {
+            RegressionLabel label = (RegressionLabel) neighbor.getNeighbor().getLabel();
             double lambda = (1.0 / (1.0 + neighbor.getDistance())) / lambdaDenom;
-            neighborSum += (lambda * neighbor.getNeighbor().getLabel().getLabel());
+            neighborSum += (lambda * label.getLabel());
         }
         return new RegressionLabel(neighborSum);
     }
