@@ -14,6 +14,8 @@ __MACOSX
 .DS_Store
 *.MF
 
+code/bin/*
+
 # Latex files #
 *.aux
 *.log
