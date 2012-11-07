@@ -20,3 +20,4 @@ code/bin/*
 *.aux
 *.log
 *.out
+*.synctex\.gz

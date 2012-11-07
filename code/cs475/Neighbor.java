@@ -18,6 +18,15 @@ public class Neighbor {
         seenFeatures = features;
         distance = computeDistance(test.getFeatureVector(), neighbor.getFeatureVector());
     }
+
+    public String toString() {
+        String x = neighbor.getLabel().toString() + " ";
+        for (Feature f : neighbor.getFeatureVector()) {
+            x += f.index_ + ":" + f.value_ + " ";
+        }
+        return x;
+
+    }
     
 
     public Instance getNeighbor() { return neighbor; }
