@@ -39,18 +39,18 @@
 V_c = (2r)^d
 \end{equation}
 \begin{equation}
-V_s = \frac{r^d \sqrt{\pi}^d}{\gamma (\frac{d}{2} + 1)}
+V_s = \frac{r^d \sqrt{\pi}^d}{\Gamma (\frac{d}{2} + 1)}
 \end{equation}
 \begin{align}
 \lim_{d \rightarrow \infty} \frac{V_s}{V_c} 
-& = \lim_{d \rightarrow \infty} \frac{r^d \sqrt{\pi}^d}{2^d r^d \gamma (\frac{d}{2} + 1)} & \text{let $d = 2z$}\\
+& = \lim_{d \rightarrow \infty} \frac{r^d \sqrt{\pi}^d}{2^d r^d \Gamma (\frac{d}{2} + 1)} & \text{let $d = 2z$}\\
 & = \lim_{z \rightarrow \infty} \frac{r^2z \sqrt{\pi}^2z}{2^2z r^2z \Gamma (z + 1)} \frac{\frac{1}{\sqrt{2 \pi z} e^{-z} z^z}}{\frac{1}{\sqrt{2 \pi z} e^{-z} z^z}}\\
 & = \lim_{z \rightarrow \infty} \frac{\frac{\sqrt{\pi}^{2^z}}{\sqrt{2 \pi z}e^{-z} z^z 2^{2z}}}{\frac{\Gamma (z + 1)}{\sqrt{2 \pi z}e^{-z} z^z}}\\
 & = \lim_{z \rightarrow \infty} \frac{\pi^{z -.5} e^z}{2^{2z +.5}{z^{z +.5}}}\\
 & = 0
 \end{align}
 \item
-    Let us look at the $\epsilon$ ball variant of KNN\@. We have some
+    Let us look at the $\epsilon$ ball variant of KNN. We have some
     n dimensional cube that represents our total feature space. And we pick
     a radius $\epsilon$ for our ball so that it encompasses some small but existent
     portion of the dataset. In low dimensions this is feasible to do. But in higher
@@ -71,7 +71,17 @@ V_s = \frac{r^d \sqrt{\pi}^d}{\gamma (\frac{d}{2} + 1)}
     similar prediction power to the $K_1$ classifier becuase they achieve the
     same cross validation error.
 \item
-    KNN essentially dra
+    KNN essentially draws boundaries between clusters. If the clusters are
+    close together and dense, then KNN will have a hard time finding the
+    right classification for examples on the border. In this case, a linear
+    SVM on the K nearest neighbors will be helpful because it can distinguish
+    that border no matter which side of the border the example we are trying
+    to classify is on, as long as it can see examples on each side of the
+    border. However, when we only have a few neighbors than the border that
+    the KNN model learns will be very similar to the one that the linear
+    SVM learns. This is because in sparser areas, the KNN algorithm works
+    much better and is less sensitive to small changes in the location of
+    the example, and so the linear SVM will learn a similar boundary.
 \end{enumerate}
 
 \paragraph{Question 3:}
