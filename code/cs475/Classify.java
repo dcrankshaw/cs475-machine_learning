@@ -30,6 +30,7 @@ public class Classify {
     public static int ensemble_training_iterations = 5;
     public static double cluster_lambda = 0.0;
     public static int clustering_training_iterations = 10;
+    public static String algorithm;
 
     public static void main(String[] args) throws IOException {
         // Parse the command line.
@@ -40,7 +41,7 @@ public class Classify {
         String mode = CommandLineUtilities.getOptionValue("mode");
         String data = CommandLineUtilities.getOptionValue("data");
         String predictions_file = CommandLineUtilities.getOptionValue("predictions_file");
-        String algorithm = CommandLineUtilities.getOptionValue("algorithm");
+        algorithm = CommandLineUtilities.getOptionValue("algorithm");
         String model_file = CommandLineUtilities.getOptionValue("model_file");
         if (CommandLineUtilities.hasArg("max_decision_tree_depth")) {
             max_decision_tree_depth = CommandLineUtilities.getOptionValueAsInt("max_decision_tree_depth");
@@ -186,6 +187,10 @@ public class Classify {
                     k_ensemble,
                     ensemble_learning_rate,
                     ensemble_training_iterations);
+        } else if (algorithm.equalsIgnoreCase("lambda_means")) {
+            predictor = new LambdaMeansPredictor(
+                cluster_lambda,
+                clustering_training_iterations);
         } else {
             System.out.println("No matching algorithm.");
             return null;
@@ -197,6 +202,8 @@ public class Classify {
             System.out.println("Training Evaluation: " + trainEvaluation);
             System.out.println();
 
+        } else if (algorithm.equalsIgnoreCase("lambda_means")) {
+            System.out.println("Use python scripts");
         } else {
             double trainEvaluation = AccuracyEvaluator.evaluateClassification(instances, predictor);
             System.out.println("Training Evaluation: " + trainEvaluation);
@@ -211,6 +218,8 @@ public class Classify {
         double testEvaluation;
         if (classification) {
             testEvaluation = AccuracyEvaluator.evaluateClassification(instances, predictor);
+        } else if (algorithm.equalsIgnoreCase("lambda_means")) {
+            System.out.println("Use python scripts");
         } else {
             testEvaluation = AccuracyEvaluator.evaluateRegression(instances, predictor);
         }
@@ -267,7 +276,7 @@ public class Classify {
         OptionBuilder.withDescription(description);
         Option option = OptionBuilder.create(option_name);
 
-        Classify.options.add(option);		
+        Classify.options.add(option);
     }
 
     private static void createCommandLineOptions() {

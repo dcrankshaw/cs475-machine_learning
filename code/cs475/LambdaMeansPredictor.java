@@ -33,6 +33,8 @@ public class LambdaMeansPredictor extends Predictor {
             assignExamplesToClusters(instances);
             updateMeanVectors();
         }
+        // Don't need to keep entire training set in memory
+        clusterMembers.clear();
     }
 
     // E Step
