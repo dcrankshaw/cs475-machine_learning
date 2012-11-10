@@ -28,6 +28,8 @@ public class Classify {
     public static int k_ensemble = 5;
     public static double ensemble_learning_rate = 0.1;
     public static int ensemble_training_iterations = 5;
+    public static double cluster_lambda = 0.0;
+    public static int clustering_training_iterations = 10;
 
     public static void main(String[] args) throws IOException {
         // Parse the command line.
@@ -80,6 +82,12 @@ public class Classify {
         }
         if (CommandLineUtilities.hasArg("ensemble_training_iterations")) {
             ensemble_training_iterations = CommandLineUtilities.getOptionValueAsInt("ensemble_training_iterations");
+        }
+        if (CommandLineUtilities.hasArg("cluster_lambda")) {
+            cluster_lambda = CommandLineUtilities.getOptionValueAsFloat("cluster_lambda");
+        }
+        if (CommandLineUtilities.hasArg("clustering_training_iterations")) {
+            clustering_training_iterations = CommandLineUtilities.getOptionValueAsInt("clustering_training_iterations");
         }
 
 
@@ -281,6 +289,8 @@ public class Classify {
         registerOption("k_ensemble", "int", true, "The number of classifiers in the ensemble.");
         registerOption("ensemble_learning_rate", "double", true, "The ensemble learning rate.");
         registerOption("ensemble_training_iterations", "int", true, "The number of ensemble training iterations.");
+        registerOption("cluster_lambda", "double", true, "The value of lambda in lambda-means.");
+        registerOption("clustering_training_iterations", "int", true, "The number of lambda-means EM iterations.");
 
     }
 }

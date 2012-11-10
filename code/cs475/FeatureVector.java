@@ -7,6 +7,7 @@ import java.util.*;
 // NOTE All indices are 1-indexed
 public class FeatureVector implements Serializable, Iterable<Feature> {
 
+	private static final long serialVersionUID = 1L;
     private TreeMap<Integer, Feature> vector;
     private int maxIndex_;
     public FeatureVector() {
@@ -48,6 +49,81 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
 
     public Iterator<Feature> iterator() {
         return new FeatureVectorIterator();
+    }
+
+    public double computeDistance(FeatureVector other) {
+        double norm = 0;
+        Iterator<Feature> thisIter = this.iterator();
+        boolean updateThis = true;
+        Iterator<Feature> otherIter = other.iterator();
+        boolean updateOther = true;
+        if (thisIter.hasNext() && otherIter.hasNext()) {
+            Feature thisFeature = thisIter.next();
+            updateThis = false;
+            Feature otherFeature = otherIter.next();
+            updateOther = false;
+            while ((thisIter.hasNext() || !updateThis) && (otherIter.hasNext() || !updateOther)) {
+                if (updateThis) {
+                    thisFeature = thisIter.next();
+                }
+                if (updateOther) {
+                    otherFeature = otherIter.next();
+                }
+                updateThis = true;
+                updateOther = true;
+                if (thisFeature.index_ == otherFeature.index_) {
+                    double diff = thisFeature.value_ - otherFeature.value_;
+                    norm += diff*diff;
+                } else if (thisFeature.index_ < otherFeature.index_) {
+                    norm += thisFeature.value_*thisFeature.value_;
+                    while (thisIter.hasNext()) {
+                        thisFeature = thisIter.next();
+                        if (thisFeature.index_ == otherFeature.index_) {
+                            double diff = thisFeature.value_ - otherFeature.value_;
+                            norm += diff*diff;
+                            break;
+                        } else if (thisFeature.index_ > otherFeature.index_) {
+                            updateThis = false;
+                            break;
+                        } else {
+                            norm += thisFeature.value_*thisFeature.value_;
+                        }
+                    }
+                } else if (otherFeature.index_ < thisFeature.index_) {
+                    norm += otherFeature.value_*otherFeature.value_;
+                    while (otherIter.hasNext()) {
+                        otherFeature = otherIter.next();
+                        if (thisFeature.index_ == otherFeature.index_) {
+                            double diff = thisFeature.value_ - otherFeature.value_;
+                            norm += diff*diff;
+                            break;
+                        } else if (thisFeature.index_ < otherFeature.index_) {
+                            updateOther = false;
+                            break;
+                        } else {
+                            norm += otherFeature.value_*otherFeature.value_;
+                        }
+                    }
+                }
+
+            }
+            //will only go into one of these loops
+            while (thisIter.hasNext() || !updateThis) {
+                if (updateThis) {
+                    thisFeature = thisIter.next();
+                }
+                updateThis = true;
+                norm += thisFeature.value_*thisFeature.value_;
+            }
+            while (otherIter.hasNext() || !updateOther) {
+                if (updateOther) {
+                    otherFeature = otherIter.next();
+                }
+                updateOther = true;
+                norm += otherFeature.value_*otherFeature.value_;
+            }
+        }
+        return Math.sqrt(norm);
     }
 
 
