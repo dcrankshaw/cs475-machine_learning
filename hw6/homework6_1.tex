@@ -1,0 +1,328 @@
+\documentclass[11pt]{article}
+
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{url}
+\usepackage{wrapfig}
+\usepackage{color}
+\usepackage{marvosym}
+\usepackage{enumerate}
+\usepackage{subfigure}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref} 
+
+
+\oddsidemargin 0mm
+\evensidemargin 5mm
+\topmargin -20mm
+\textheight 240mm
+\textwidth 160mm
+
+
+
+
+\newcommand{\vw}{{\bf w}}
+\newcommand{\vx}{{\bf x}}
+\newcommand{\vy}{{\bf y}}
+\newcommand{\vxi}{{\bf x}_i}
+\newcommand{\yi}{y_i}
+\newcommand{\vxj}{{\bf x}_j}
+\newcommand{\vxn}{{\bf x}_n}
+\newcommand{\yj}{y_j}
+\newcommand{\ai}{\alpha_i}
+\newcommand{\aj}{\alpha_j}
+\newcommand{\X}{{\bf X}}
+\newcommand{\Y}{{\bf Y}}
+\newcommand{\vz}{{\bf z}}
+\newcommand{\msigma}{{\bf \Sigma}}
+\newcommand{\vmu}{{\bf \mu}}
+\newcommand{\vmuk}{{\bf \mu}_k}
+\newcommand{\msigmak}{{\bf \Sigma}_k}
+\newcommand{\vmuj}{{\bf \mu}_j}
+\newcommand{\msigmaj}{{\bf \Sigma}_j}
+\newcommand{\pij}{\pi_j}
+\newcommand{\pik}{\pi_k}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\el}{\mathcal{L}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\vxij}{{\bf x}_{ij}}
+\newcommand{\vt}{{\bf t}}
+\newcommand{\yh}{\hat{y}}
+\newcommand{\code}[1]{{\footnotesize \tt #1}}
+\newcommand{\alphai}{\alpha_i}
+
+\pagestyle{myheadings} 
+\markboth{Homework 6}{Fall 2012 CS 475 Machine Learning: Homework 6} 
+
+
+\title{CS 475 Machine Learning: Homework 6\\$K$-means and EM algorithms \\
+\Large{Due: Wednesday November 14, 2012, 12:00pm}\\
+100 Points Total \hspace{1cm} Version 1.1}
+
+\author{}
+\date{}
+
+\begin{document}
+\large
+\maketitle
+\thispagestyle{headings}
+
+\vspace{-.5in}
+
+\section{Programming (50 points)}
+In this assignment you will implement a variant of the $K$-means clustering algorithm called $\lambda$-means clustering.
+
+\subsection{$\lambda$-Means}
+The $K$-means clustering algorithm groups instances into $K$ clusters. Each cluster is represented by a prototype vector $\vmuk$, which represents the mean of the examples in that cluster. Cluster assignments are ``hard,'' meaning that an instance can belong to only a single cluster at a time.
+
+The $K$-means algorithm works by assigning instances to the cluster whose prototype $\vmuk$ has the smallest distance to the instance  (based on, e.g. Euclidean distance). The mean vectors $\vmuk$ are then updated based on the new assignments of instances to clusters, and this process is repeated using an EM-style iterative algorithm.
+
+A limitation of $K$-means is that we must choose the number of clusters $K$ in advance, which can be difficult to choose in practice. There is a variant of $K$-means, which we call $\lambda$-means, in which the number of clusters can change as the algorithm proceeds. This algorithm is very similar to $K$-means, with one difference: when assigning an instance $\vxi$ to a cluster, we will assign it to the lowest-distance cluster {\bf unless} all of the clusters have a distance larger than some threshold $\lambda$. In this case, we then assign $\vxi$ to a new cluster, which is denoted cluster $K+1$ if we previously had $K$ clusters. The prototype vector for the new cluster will simply  be the same vector as the instance, $\vmu_{K+1} = \vxi$.
+The idea is that if an instance is not similar to any of the clusters, we should start a new one.\footnote{This algorithm (called ``DP-means'' here) is described in: B. Kulis and M.I. Jordan. Revisiting k-means: New Algorithms via Bayesian Nonparametrics. 29th International Conference on Machine Learning (ICML), 2012.}
+
+You should create a class called \code{LambdaMeansPredictor}. The command line \code{algorithm} argument should be \code{lambda\_means}.
+
+\subsubsection{Clustering as a \code{\normalsize Predictor}}
+
+Your class should extend \code{Predictor}, as you have done all semester. You will still implement the \code{train} and \code{predict} methods. The behavior will be slightly different than usual, however.
+
+In unsupervised learning, the learner does not have access to labeled data. However, the datasets you have been using contain labels in the training data. You should not use these labels at all during learning. Additionally, since the clustering algorithm cannot read the correct labels, we must be clear about what ``label'' you are returning with \code{predict}.
+
+Your implementation should include the following functionality:
+
+\begin{itemize}
+\item The \code{train} method should learn the cluster parameters based on the training examples. While the labels are available in the provided data, the clustering algorithms should not use this information. The result of the \code{train} method are the cluster parameters: the means $\vmuk$ and the number of clusters $K$. 
+\item The \code{predict} method should label the examples by assigning them to the closest cluster.
+The value of the label should be the cluster index, i.e., an example closest to $k$th cluster should receive label $k$. While this document will describe the algorithm as if $k$ is in the set $\{1,\ldots,K\}$, it is fine for your code to use the set $\{0,\ldots,K-1\}$ because the evaluation scripts (see \ref{sec:evaluation}) will give the same results whether you use 0-indexing or 1-indexing.
+\end{itemize}
+
+\subsection{Inference with EM}
+
+The $K$-means algorithm and the $\lambda$-means algorithm are based on an EM-style iterative algorithm. On each iteration, the algorithm computes 1 E-step and 1 M-step.
+
+In the E-step, cluster assignments $r_{nk}$ are determined based on the current model parameters $\vmuk$. 
+$r_{nk}$ is an {\bf indicator} variable that is 1 if the $n$th instance belongs to cluster $k$ and 0 otherwise.
+
+Suppose there are currently $K$ clusters. You should set the indicator variable for these clusters as follows. For $k \in \{1,\ldots,K\}$:
+
+\begin{equation}
+\label{eq:E1}
+r_{nk} =  \left\{
+     \begin{array}{lr}
+        1~~  \textrm{if} ~~  k = \arg\min_j ||\vxn - \vmuj||^2  \textrm{ and }  \min_j ||\vxn - \vmuj||^2 \leq \lambda \\
+        0 ~~   ~~ \textrm{otherwise}
+     \end{array}
+   \right.
+\end{equation}
+
+\noindent where $||\vx-\vx'||^2$ denotes the Euclidean distance, $\sqrt {\sum_{f=1}^m (x_f - x'_f)^2}$. When computing this distance, assume that if a feature is not present in an instance $\vx$, then it has value 0.
+
+
+Additionally, you must consider the possibility that the instance $\vxn$ is assigned to a new cluster, $K+1$. The indicator for this is:
+
+\begin{equation}
+\label{eq:E2}
+r_{n,K+1} =  \left\{
+     \begin{array}{lr}
+        1 ~~  \textrm{if} ~~  \min_j ||\vxn - \vmuj||^2 > \lambda \\
+        0 ~~    ~~ \textrm{otherwise}
+     \end{array}
+   \right.
+\end{equation}
+
+If $r_{n,K+1}=1$, you should immediately set $\vmu_{K+1}=\vxn$ and $K=K+1$, before moving on to the next instance $\vx_{n+1}$. You should not wait until the M-step to update $\vmu_{K+1}$.
+
+Be sure to {\bf iterate through the instances in the order they appear} in the dataset.
+
+After the E-step, you will update the mean vectors $\vmuk$ for each cluster $k \in \{1,\ldots,K\}$ (where $K$ may have increased during the E-step). This is forms the M-step, in which the model parameters $\vmuk$ are updated using the new cluster assignments:
+
+\begin{equation}
+\vmu_{k}= \frac{\sum_n r_{nk} \vxn}{\sum_n r_{nk}}
+\end{equation}
+
+This process will be repeated for a given number of iterations (see \ref{sec:iterations}).
+
+
+
+\subsection{Cluster Initialization}
+\label{sec:initial}
+As we discussed in class, clustering objectives are non-convex. Therefore, different initializations will lead to different clustering solutions. In order to test submitted code, everyone must use the same initialization method.
+
+In $K$-means, the standard initialization method is to randomly place each instance into one of the $K$ clusters. However, in $\lambda$-means you can simply initialize the algorithm with only one cluster, i.e. $K=1$. You should initialize the prototype vector to the mean of all instances: $\vmu_1 = \bar{\vx} = \frac{1}{N} \sum_{n=1}^{N} \vxn$.
+
+
+
+\subsection{Lambda Value}
+
+The default value of $\lambda$ will be based on the average distance from each training instance to the mean of the training data.
+
+\begin{displaymath}
+\label{eq:default}
+\lambda^{\textrm{\scriptsize (default)}} =  \frac{1}{N} \sum_{i=1}^{N} ||\vxi-\bar{\vx}||^2   
+\end{displaymath}
+
+\noindent where $\bar{\vx}$ is the mean vector of the training instances (also the initialization of $\vmu_1$ in \ref{sec:initial}).
+
+You \emph{must} add a command line argument to allow this value to be adjusted via the command line: \code{cluster\_lambda}. 
+Add this command line option by adding the following code to the \code{createCommandLineOptions} method of \code{Classify}.
+\begin{footnotesize}
+\begin{verbatim}
+registerOption("cluster_lambda", "double", true, "The value of lambda in lambda-means.");
+\end{verbatim}
+\end{footnotesize}
+
+
+You can then read the value from the command line by adding the following to the main method of \code{Classify}:
+\begin{footnotesize}
+\begin{verbatim}
+double cluster_lambda = 0.0;
+if (CommandLineUtilities.hasArg("cluster_lambda"))
+    cluster_lambda = CommandLineUtilities.getOptionValueAsFloat("cluster_lambda");
+\end{verbatim}
+\end{footnotesize}
+
+How you implement the default value is up to you, but it probably makes more sense to set the default value of $\lambda$ inside \code{LambdaMeansPredictor} rather than \code{Classify}. You can do this by setting the value to 0 by default (as in the above code example), then set the value to the default in Eq. \ref{eq:default} if the value passed to the constructor is 0. You can assume that any value we supply through the command line will be $>0$.
+
+We highly encourage you to experiment with different values of $\lambda$ and see how it effects the number of clusters which are produced.
+
+
+\subsection{Number of Iterations}
+\label{sec:iterations}
+
+The default number of clustering iterations is 10. An iteration is defined as computing 1 E-step and 1-M step of the algorithm (in that order).
+
+You \emph{must} define a new command line option for this parameter: \code{clustering\_training\_iterations}.
+You can add this option by adding the following code to the \code{createCommandLineOptions} method of \code{Classify}.
+\begin{footnotesize}
+\begin{verbatim}
+registerOption("clustering_training_iterations", "int", true, "The number of lambda-means EM iterations.");
+\end{verbatim}
+\end{footnotesize}
+
+
+You can then read the value from the command line by adding the following to the main method of \code{Classify}:
+\begin{footnotesize}
+\begin{verbatim}
+int clustering_training_iterations = 10;
+if (CommandLineUtilities.hasArg("clustering_training_iterations"))
+    clustering_training_iterations = CommandLineUtilities.getOptionValueAsInt("clustering_training_iterations");
+\end{verbatim}
+\end{footnotesize}
+
+
+\subsection{Implementation Details}
+
+\subsubsection{Tie-Breaking}
+When assigning an instance to a cluster, you may encounter ties, where the instance is equidistant to two or more clusters. In case of a tie, select the cluster with the lowest cluster index.
+
+\subsubsection{Empty Clusters}
+It is possible (although unlikely) that a cluster can become empty during the course of the algorithm. That is, there may exist a cluster $k$ such that $r_{nk}=0,\ \forall n$. In this case, you should set $\vmuk={\mathbf 0}$. Do not remove empty clusters.
+
+\subsubsection{Expanding the Cluster Set}
+In standard $K$-means, you typically create arrays of size $K$ to store the parameters. Since the number of clusters can grow with $\lambda$-means, you will need to set up data structures that can accommodate this.
+One option is to simply use arrays of a fixed size, and expand the size of the array if you run out of space (by creating a larger array and copying the contents of the old array). Alternatively, you can use a Java data structure such as  \code{ArrayList} which does not have a fixed size.
+
+\subsection{Evaluation}
+\label{sec:evaluation}
+
+For clustering, we cannot simply use accuracy against true labels to evaluate the output, since your prediction outputs are simply the indices of clusters, which could be arbitrary. We will evaluate your output using an information-theoretic metric called {\em variation of information} (VI), which can be used to measure the dependence of the cluster indices with the true labels.
+The variation of information between two random variables $Y$ and $\hat{Y}$ is defined as: $H(Y|\hat{Y}) + H(\hat{Y}|Y)$. Lower is better. This will have a value of 0 if there is a one-to-one mapping between the two labelings, which is the best you can do.
+We have provided a Python script to compute this metric: \code{cluster\_accuracy.py}.
+
+Additionally, we have provided a script that displays the number of unique clusters: \code{number\_clusters.py}.
+
+We will evaluate your implementation on the standard data sets you have been using (\code{speech}, \code{bio}, etc.) as well as the multi-class data, \code{speech.mc}.
+
+
+
+\section{Analytical (50 points)}
+
+\paragraph{1) $K$-means and Overfitting (11 points)}
+Suppose we apply the $K$-means algorithm to a data set of $n$ examples, $x_1,...,x_n$. The $K$-means algorithm aims to partition the $n$ observations into $k$ sets ($k \le n$) $S = \{S_1, S_2, É, S_k\}$ so as to minimize the within-cluster sum of squares
+\begin{align}\label{kmeans}
+\min_{S=\{S_1,...,S_k\}}\sum_{j=1}^k\sum_{x_i\in S_j}\|x_j-\mu_j\|_2^2,
+\end{align}
+where $\mu_j$ is the mean of points in $S_j$.
+\begin{enumerate}[(a)]
+\item Let $\gamma_k$ denote the minimum of \eqref{kmeans}. Prove analytically that $\gamma_k$ is non-increasing in $k$.
+\item We can also apply the kernel trick to the $K$-means algorithm. Suppose we have some mapping from the original space to the feature space, $x\rightarrow\phi(x)$. Then we can rewrite \eqref{kmeans} as
+\begin{align}
+\min_{S=\{S_1,...,S_k\}}\sum_{j=1}^k\sum_{x_i\in S_j}\|\phi(x_j)-\alpha_j\|_2^2,
+\end{align}
+where $\alpha_j$ is the mean of points in $S_j$ in the feature space, i.e, 
+\begin{align}
+\alpha_j = \frac{1}{|S_j|}\sum_{x_i \in S_j}\phi(x_i).
+\end{align}
+Recall the kernel function is defined as $k(x,x_i) = \langle\phi(x),\phi(x_i)\rangle$. Please derive the update formulas for this version of $K$-means.
+\end{enumerate}
+
+\paragraph{2) Variable Selection for $K$-means (11 points)}
+
+Let's consider the same setup as the previous problem. We can modify $K$-means objective with $\ell_1$ regularization. More specifically, we consider
+\begin{align}
+\min_{S=\{S_1,...,S_k\}}\sum_{j=1}^k\sum_{x_i\in S_j}\|x_j-\mu_j\|_2^2 + \lambda\sum_{g=1}^k\|\mu_g\|_1,
+\end{align}
+where $\lambda > 0$ is the regularization parameter.
+\begin{enumerate}[(a)]
+\item Please derive the update formula for the M-step and describe the result. You may need the fact that,
+\begin{align}
+\hat{v} = \mathop{\arg\min}_{v} \frac{1}{2}\|u-v\|_2^2 + \lambda\|v\|_1
+\end{align}
+has a closed form solution
+\begin{align}
+\hat{v}  = [\hat{v}_j]_{j=_1}^d = [\mathrm{sign}(u_j)\max\{|u_j|-\lambda,0\}_{j=1}^d].
+\end{align}
+\item The $\ell_1$ regularization encourages sparsity of $\mu_j$. If the results have the $m$-th entries of all $\mu_j$'s equal to zero, what will this imply?
+\end{enumerate}
+
+\paragraph{3) Variants of $K$-means (10 points)}
+
+Another variant is to change the distance metric to be the L1 distance, which is more robust to outliers. In this case, we are minimizing:
+\begin{align}
+\min_{S=\{S_1,...,S_k\}}\sum_{j=1}^k\sum_{x_i\in S_j}\|x_j-\mu_j\|_1
+\end{align}
+where $\mu_j$ is the center of $S_j$ w.r.t. to L1 distance.
+\begin{enumerate}[(a)]
+\item Please derive the update formula for the M-step.
+\item This algorithm is also called K-medians. Why?
+\end{enumerate}
+
+
+\paragraph{4) EM Clustering (10 points)}
+Suppose we have a Naive Bayes clustering algorithm and a K-means clustering algorithm. Consider the following statement:\\
+Each instance is assigned, or has the highest probability of assignment, to the cluster whose mean is closest to the instance.
+
+Is this statement true:
+\begin{enumerate}[(a)]
+\item After the E-Step?
+\item After the M-Step?
+\end{enumerate}
+
+Answer true or false and why for (a) and (b) for both the Naive Bayes clustering and the K-means clustering algorithms.
+
+\paragraph{5) Online GMM (8 points)}
+We are given a data set $x_1,...,x_N$ and want to run Gaussian Mixture Model (GMM) clustering with $K$ clusters and $I$ iterations. However, in this case $N$ is very large and we cannot afford to keep all $N$ in memory. Suppose instead that we used a streaming version of a GMM, in which examples are processed one at a time. Optionally, we can make multiple passes over the data set. Suppose that for each example, we compute a single E-step and M-step based on the given example. After these two steps, we discard the example and move on to the next one.
+\begin{enumerate}[(a)]
+\item Write the E-step and M-step updates.
+\item If we ran this algorithm many times over the data set (instead of a single pass), would it converge to the same solution as batch GMM?
+\item What is the total memory requirement for streaming GMM (in terms of examples and parameters)?
+\end{enumerate}
+
+\section{What to Submit}
+In each assignment you will submit two things.
+\begin{enumerate}
+\item {\bf Code:} Your code as a zip file named {\tt library.zip}. {\bf You must submit source code (.java files)}. We will run your code using the exact command lines described above, so make sure it works ahead of time. Remember to submit all of the source code, including what we have provided to you.
+\item {\bf Writeup:} Your writeup as a {\bf PDF file} (compiled from latex) containing answers to the analytical questions asked in the assignment. Make sure to include your name in the writeup PDF and use the provided latex template for your answers.
+\end{enumerate}
+Make sure you name each of the files exactly as specified (library.zip and writeup.pdf).
+
+To submit your assignment, visit the ``Homework'' section of the website (\href{http://www.cs475.org/}{http://www.cs475.org/}.)
+
+\section{Questions?}
+Remember to submit questions about the assignment to the appropriate group on the class discussion board: \href{http://bb.cs475.org/}{http://bb.cs475.org}.
+
+\end{document}
+
+
