@@ -19,5 +19,6 @@ echo
 
 for i in "${datasets[@]}"
 do
-  echo "Test $i : `$TEST $CLASSIFIER $i`"
+  echo "$i"
+  echo "`$TEST $CLASSIFIER $i`"
 done

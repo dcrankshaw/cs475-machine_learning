@@ -33,7 +33,7 @@ public class LambdaMeansPredictor extends Predictor {
             assignExamplesToClusters(instances);
             updateMeanVectors();
         }
-        // Don't need to keep entire training set in memory
+        // Don't need to keep entire training set in memory after done training
         clusterMembers.clear();
     }
 
@@ -45,17 +45,19 @@ public class LambdaMeansPredictor extends Predictor {
             memberList.clear();
         }
         for (Instance currentExample : instances) {
+            boolean foundCluster = false;
             int smallestCluster = -1;
             double smallestDistance = Double.MAX_VALUE;
             for (int clusterIndex = 0; clusterIndex < clusterVectors.size(); ++clusterIndex) {
                 FeatureVector cluster = clusterVectors.get(clusterIndex);
                 double dist = cluster.computeDistance(currentExample.getFeatureVector());
-                if (dist < smallestDistance && dist <= lambda) {
+                if ((dist < smallestDistance) && (dist <= lambda)) {
+                    foundCluster = true;
                     smallestCluster = clusterIndex;
                     smallestDistance = dist;
                 }
             }
-            if (smallestCluster == -1) {
+            if (!foundCluster) {
                 clusterVectors.add(currentExample.getFeatureVector());
                 /* TODO I think this is unnecessary
                 FeatureVector newVec = new FeatureVector();
@@ -66,6 +68,7 @@ public class LambdaMeansPredictor extends Predictor {
                 */
                 List<Instance> currentClusterMembers = new ArrayList<Instance>();
                 currentClusterMembers.add(currentExample);
+                clusterMembers.add(currentClusterMembers);
             } else {
                 clusterMembers.get(smallestCluster).add(currentExample);
             }

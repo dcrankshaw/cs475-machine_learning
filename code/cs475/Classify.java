@@ -202,9 +202,7 @@ public class Classify {
             System.out.println("Training Evaluation: " + trainEvaluation);
             System.out.println();
 
-        } else if (algorithm.equalsIgnoreCase("lambda_means")) {
-            System.out.println("Use python scripts");
-        } else {
+        } else if (!algorithm.equalsIgnoreCase("lambda_means")) {
             double trainEvaluation = AccuracyEvaluator.evaluateClassification(instances, predictor);
             System.out.println("Training Evaluation: " + trainEvaluation);
             System.out.println();
@@ -218,12 +216,11 @@ public class Classify {
         double testEvaluation;
         if (classification) {
             testEvaluation = AccuracyEvaluator.evaluateClassification(instances, predictor);
-        } else if (algorithm.equalsIgnoreCase("lambda_means")) {
-            System.out.println("Use python scripts");
-        } else {
+            System.out.println("Testing Evaluation: " + testEvaluation);
+        } else if (!algorithm.equalsIgnoreCase("lambda_means")) {
             testEvaluation = AccuracyEvaluator.evaluateRegression(instances, predictor);
+            System.out.println("Testing Evaluation: " + testEvaluation);
         }
-        System.out.println("Testing Evaluation: " + testEvaluation);
 
         for (Instance instance : instances) {
             Label label = predictor.predict(instance);
