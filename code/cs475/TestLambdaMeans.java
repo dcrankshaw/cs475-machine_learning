@@ -1,10 +1,18 @@
 package cs475;
 
 import java.util.*;
+import java.io.IOException;
 
 public class TestLambdaMeans {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+
+        String path = "/home/crank/cs475-machine_learning/data/nlp.train";
+        DataReader data_reader = new DataReader(path, true);
+        List<Instance> instances = data_reader.readData();
+        data_reader.close();
+
+
         FeatureVector aa = new FeatureVector();
         FeatureVector bb = new FeatureVector();
 
@@ -24,17 +32,44 @@ public class TestLambdaMeans {
 
         System.out.println("aa to bb dist: " + aa.computeDistance(bb));
         System.out.println("bb to aa dist: " + bb.computeDistance(aa));
+        System.out.println("Slow dist: " + slowComputeDistance(aa, bb));
 
-        List<Instance> instances = new ArrayList<Instance>();
-        instances.add(new Instance(aa, new ClassificationLabel(0)));
-        instances.add(new Instance(bb, new ClassificationLabel(0)));
+        boolean done = false;
 
-        FeatureVector meanVector = LambdaMeansPredictor.computeMeanVector(instances);
-        for (Feature f : meanVector) {
-            System.out.print(f + " ");
+        for (Instance a : instances) {
+            for (Instance b: instances) {
+                double dist = a.getFeatureVector().computeDistance(b.getFeatureVector());
+                double slowdist = slowComputeDistance(a.getFeatureVector(), b.getFeatureVector());
+                if (dist != slowdist) {
+                    done = true;
+                    System.out.println("dist: " + dist + " slowdist: " + slowdist);
+                    System.out.println("a: " + instances.indexOf(a) + " b: " + instances.indexOf(b));
+                    break;
+                }
+            }
+            if (done) {
+                break;
+            }
         }
-        System.out.println();
 
+    }
+
+    public static double slowComputeDistance(FeatureVector first, FeatureVector second) {
+        int largest_index = first.dimensionality();
+        if (second.dimensionality() > largest_index) {
+            largest_index = second.dimensionality();
+        }
+        HashSet<Integer> indices = new HashSet<Integer>(first.getIndices());
+        Set<Integer> extraIndices = second.getIndices();
+        for (Integer index : extraIndices) {
+            indices.add(index);
+        }
+        double norm = 0;
+        for (Integer ind : indices) {
+            double diff = first.get(ind) - second.get(ind);
+            norm += diff*diff;
+        }
+        return Math.sqrt(norm);
     }
 
 }

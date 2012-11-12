@@ -24,6 +24,10 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
         return (numFeatures == 0);
     }
 
+    public Set<Integer> getIndices() {
+        return vector.keySet();
+    }
+
     public void add(int index, double value) {
         Feature newFeature = new Feature(index, value);
         vector.put(index, newFeature);
@@ -61,7 +65,7 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
         return new FeatureVectorIterator();
     }
 
-    public double computeDistance(FeatureVector other) {
+    /*public double computeDistance(FeatureVector other) {
         double norm = 0;
         Iterator<Feature> thisIter = this.iterator();
         boolean updateThis = true;
@@ -134,6 +138,25 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
                 updateOther = true;
                 norm += otherFeature.value_*otherFeature.value_;
             }
+        }
+        return Math.sqrt(norm);
+    } */
+
+
+    public double computeDistance(FeatureVector second) {
+        int largest_index = this.dimensionality();
+        if (second.dimensionality() > largest_index) {
+            largest_index = second.dimensionality();
+        }
+        HashSet<Integer> indices = new HashSet<Integer>(this.getIndices());
+        Set<Integer> extraIndices = second.getIndices();
+        for (Integer index : extraIndices) {
+            indices.add(index);
+        }
+        double norm = 0;
+        for (Integer ind : indices) {
+            double diff = this.get(ind) - second.get(ind);
+            norm += diff*diff;
         }
         return Math.sqrt(norm);
     }
