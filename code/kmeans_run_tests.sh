@@ -5,7 +5,7 @@
 #datasets=( bio finance nlp speech vision hard easy)
 #datasets=(bio easy finance hard speech speech.mc vision nlp)
 #datasets=(bio finance nlp speech.mc speech easy hard vision)
-datasets=(bio)
+datasets=(nlp)
 
 # CLASSIFIER=$1
 CLASSIFIER=lambda_means
