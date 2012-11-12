@@ -3,16 +3,16 @@ package cs475;
 import java.io.Serializable;
 import java.util.*;
 
-// Sparse vector implented as a Java TreeMap
+// Sparse vector implented as a Java HashMap
 // NOTE All indices are 1-indexed
 public class FeatureVector implements Serializable, Iterable<Feature> {
 
 	private static final long serialVersionUID = 1L;
-    private TreeMap<Integer, Feature> vector;
+    private HashMap<Integer, Feature> vector;
     private int maxIndex_;
     private int numFeatures = 0;
     public FeatureVector() {
-        vector = new TreeMap<Integer, Feature>();
+        vector = new HashMap<Integer, Feature>();
         maxIndex_ = 0;
     }
 
@@ -61,6 +61,20 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
         return new FeatureVectorIterator();
     }
 
+    public double computeDistance(FeatureVector other) {
+        int largestIndex = maxIndex_;
+        if (other.dimensionality() > largestIndex) {
+            largestIndex = other.dimensionality();
+        }
+        double norm = 0;
+        for (int i = 0; i <= largestIndex; ++i) {
+            double diff = this.get(i) - other.get(i);
+            norm += diff*diff;
+        }
+        return Math.sqrt(norm);
+    }
+
+    /*
     public double computeDistance(FeatureVector other) {
         double norm = 0;
         Iterator<Feature> thisIter = this.iterator();
@@ -134,14 +148,18 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
             }
         }
         return Math.sqrt(norm);
-    }
+    }*/
 
 
     private class FeatureVectorIterator implements Iterator<Feature> {
-        private Iterator<Feature> internalIterator;
+
+        //private Iterator<Feature> internalIterator;
+        private Iterator<Integer> internalIterator;
+        private TreeSet<Integer> indices;
 
         public FeatureVectorIterator() {
-            internalIterator = vector.values().iterator();
+            indices = new TreeSet<Integer>(vector.keySet());
+            internalIterator = indices.iterator();
         }
 
         public boolean hasNext() {
@@ -149,11 +167,15 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
         }
 
         public Feature next() {
-            return internalIterator.next();
+            return vector.get(internalIterator.next());
         }
 
         public void remove() {
-            internalIterator.remove();
+            throw new UnsupportedOperationException();
         }
+
+        /*public void remove() {
+            internalIterator.remove();
+        }*/
     }
 }
