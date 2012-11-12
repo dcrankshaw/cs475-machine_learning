@@ -10,6 +10,7 @@ public class LambdaMeansPredictor extends Predictor {
     // A list of mean FeatureVectors representing the clusters
     private HashMap<Integer, FeatureVector> clusterVectors;
     private HashMap<Integer, List<Instance>> clusterMembers;
+    private int K;
 
     public LambdaMeansPredictor(double _lambda, int numIterations) {
         lambda = _lambda;
@@ -26,9 +27,10 @@ public class LambdaMeansPredictor extends Predictor {
             System.out.print(f + " ");
         }
         System.out.println();*/
-        clusterVectors.put(0, meanVector);
+        K = 1;
+        clusterVectors.put(1, meanVector);
         // Initialize empty member list for single initial cluster
-        clusterMembers.put(0, new ArrayList<Instance>());
+        clusterMembers.put(1, new ArrayList<Instance>());
         if (lambda == 0.0) {
             lambda = defaultLambda(instances, meanVector);
             System.out.println("lambda: " + lambda);
@@ -40,61 +42,74 @@ public class LambdaMeansPredictor extends Predictor {
         }
         // Don't need to keep entire training set in memory after done training
         clusterMembers.clear();
+        System.out.println("K: " + K);
+        int nonEmptyClusters = 0;
+        for (int clusterIndex = 1; clusterIndex <= K; ++clusterIndex) {
+            if (!clusterVectors.get(clusterIndex).isEmpty()) {
+                nonEmptyClusters++;
+            }
+        }
+        System.out.println("Nonempty clusters: " + nonEmptyClusters);
     }
 
     // E Step
     private void assignExamplesToClusters(List<Instance> instances) {
         //clear all member lists before updating so that each cluster gets assigned to
         //only it's current best cluster
-        for (Integer clusterID : clusterMembers.keySet()) {
+        clusterMembers.clear();
+        /*for (Integer clusterID : clusterMembers.keySet()) {
             clusterMembers.get(clusterID).clear();
-        }
+        }*/
         for (Instance currentExample : instances) {
-            int smallestCluster = -1;
+            int closestClusterIndex = -1;
             double smallestDistance = Double.MAX_VALUE;
-            for (int clusterIndex = 0; clusterIndex < clusterVectors.size(); ++clusterIndex) {
+            for (int clusterIndex = 1; clusterIndex <= K; ++clusterIndex) {
                 FeatureVector cluster = clusterVectors.get(clusterIndex);
+                if (cluster.isEmpty()) {
+                    continue;
+                }
                 double dist = cluster.computeDistance(currentExample.getFeatureVector());
                 if (dist < smallestDistance) {
-                    smallestCluster = clusterIndex;
+                    closestClusterIndex = clusterIndex;
                     smallestDistance = dist;
                 }
             }
             if (smallestDistance > lambda) {
-                // TODO I think this is unnecessary
                 FeatureVector newVec = new FeatureVector();
                 for (Feature f : currentExample.getFeatureVector()) {
                     newVec.add(f.index_, f.value_);
                 }
-                clusterVectors.put(clusterVectors.size(), newVec);
+                // Add new cluster
+                clusterVectors.put(K + 1, newVec);
                 List<Instance> currentClusterMembers = new ArrayList<Instance>();
                 currentClusterMembers.add(currentExample);
-                clusterMembers.put(clusterMembers.size(), currentClusterMembers);
-                if (clusterMembers.size() != clusterVectors.size()) {
-                    System.out.println("Cluster Members size != cluster vectors size");
-                }
+                clusterMembers.put(K + 1, currentClusterMembers);
+                // Update K
+                K = K + 1;
             } else {
-                clusterMembers.get(smallestCluster).add(currentExample);
+                List<Instance> currentClusterMembers = clusterMembers.get(closestClusterIndex);
+                if (currentClusterMembers == null) {
+                    currentClusterMembers = new ArrayList<Instance>();
+                }
+                currentClusterMembers.add(currentExample);
+                clusterMembers.put(closestClusterIndex, currentClusterMembers);
             }
         }
     }
 
     // M step
     private void updateMeanVectors() {
-        if (clusterMembers.size() != clusterVectors.size()) {
-            System.out.println("Cluster Members size != cluster vectors size");
-        }
-
         clusterVectors.clear();
-        for (int index = 0; index < clusterMembers.size(); ++index) {
-            List<Instance> members = clusterMembers.get(index);
+        for (int ii = 1; ii <= K; ++ii) {
+            List<Instance> members = clusterMembers.get(ii);
             FeatureVector newMeanVector = computeMeanVector(members);
-            clusterVectors.put(index, newMeanVector);
-            //clusterVectors.set(index, newMeanVector);
+            clusterVectors.put(ii, newMeanVector);
+            //clusterVectors.set(ii, newMeanVector);
         }
     }
 
-    private double defaultLambda(List<Instance> instances,
+    // TODO This method works
+    public static double defaultLambda(List<Instance> instances,
                                  FeatureVector meanVector) {
         double dist = 0;
         for (Instance i : instances) {
@@ -104,9 +119,10 @@ public class LambdaMeansPredictor extends Predictor {
     }
 
     //private FeatureVector computeMeanVector(List<Instance> instances) {
+    // TODO This method works
     public static FeatureVector computeMeanVector(List<Instance> currentInstances) {
         FeatureVector mean = new FeatureVector();
-        if (currentInstances.size() == 0) {
+        if (currentInstances == null || currentInstances.size() == 0) {
             return mean;
         }
         for (Instance current : currentInstances) {
@@ -127,8 +143,11 @@ public class LambdaMeansPredictor extends Predictor {
     public Label predict(Instance instance) {
         int smallestCluster = -1;
         double smallestDistance = Double.MAX_VALUE;
-        for (int clusterIndex = 0; clusterIndex < clusterVectors.size(); ++clusterIndex) {
+        for (int clusterIndex = 1; clusterIndex <= K; ++clusterIndex) {
             FeatureVector cluster = clusterVectors.get(clusterIndex);
+            if (cluster.isEmpty()) {
+                continue;
+            }
             double dist = cluster.computeDistance(instance.getFeatureVector());
             if (dist < smallestDistance) {
                 smallestCluster = clusterIndex;
@@ -137,5 +156,4 @@ public class LambdaMeansPredictor extends Predictor {
         }
         return new ClassificationLabel(smallestCluster);
     }
-
 }

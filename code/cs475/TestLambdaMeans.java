@@ -8,12 +8,20 @@ public class TestLambdaMeans {
         FeatureVector aa = new FeatureVector();
         FeatureVector bb = new FeatureVector();
 
-        for (int i = 0; i < 4; ++i) {
-            aa.add(i, 4);
-        }
-        for (int j = 3; j < 8; ++j) {
-            bb.add(j, 7);
-        }
+        aa.add(0,4);
+        aa.add(3,4);
+        bb.add(3,7);
+        bb.add(8,7);
+        bb.add(11,7);
+        bb.add(14,7);
+        bb.add(15,7);
+        aa.add(29,4);
+        aa.add(67,4);
+
+        double expectedDist = Math.pow((16 + 16 + 16 + 9 + 49 + 49 + 49 + 49), .5);
+        System.out.println("Expected Distance: " + expectedDist);
+
+
         System.out.println("aa to bb dist: " + aa.computeDistance(bb));
         System.out.println("bb to aa dist: " + bb.computeDistance(aa));
 

@@ -10,6 +10,7 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
 	private static final long serialVersionUID = 1L;
     private TreeMap<Integer, Feature> vector;
     private int maxIndex_;
+    private int numFeatures = 0;
     public FeatureVector() {
         vector = new TreeMap<Integer, Feature>();
         maxIndex_ = 0;
@@ -19,12 +20,17 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
         return maxIndex_;
     }
 
+    public boolean isEmpty() {
+        return (numFeatures == 0);
+    }
+
     public void add(int index, double value) {
         Feature newFeature = new Feature(index, value);
         vector.put(index, newFeature);
         if (index > maxIndex_) {
             maxIndex_ = index;
         }
+        ++numFeatures;
     }
 
     public double get(int index) {
@@ -40,7 +46,11 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
     // returns the removed feature, or null if the feature
     // was not there
     public Feature remove(int index) {
-        return vector.remove(index);
+        Feature f = vector.remove(index);
+        if (f != null) {
+            numFeatures -= 1;
+        }
+        return f;
     }
 
     public Feature getFeature(int index) {
