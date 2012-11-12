@@ -39,6 +39,7 @@ public class LambdaMeansPredictor extends Predictor {
         for (int i = 0; i < iterations; ++i) {
             assignExamplesToClusters(instances);
             updateMeanVectors();
+            System.out.println("Finished iteration " + i);
         }
         // Don't need to keep entire training set in memory after done training
         clusterMembers.clear();
