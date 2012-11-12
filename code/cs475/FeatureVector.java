@@ -79,47 +79,57 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
             while ((thisIter.hasNext() || !updateThis) && (otherIter.hasNext() || !updateOther)) {
                 if (updateThis) {
                     thisFeature = thisIter.next();
+                    updateThis = false;
                 }
                 if (updateOther) {
                     otherFeature = otherIter.next();
+                    updateOther = false;
                 }
-                updateThis = true;
-                updateOther = true;
                 if (thisFeature.index_ == otherFeature.index_) {
                     double diff = thisFeature.value_ - otherFeature.value_;
                     norm += diff*diff;
+                    updateThis = true;
+                    updateOther = true;
                 } else if (thisFeature.index_ < otherFeature.index_) {
                     norm += thisFeature.value_*thisFeature.value_;
-                    while (thisIter.hasNext()) {
-                        thisFeature = thisIter.next();
+                    updateThis = true;
+                    while (thisIter.hasNext() || !updateThis) {
+                        if (updateThis) {
+                            thisFeature = thisIter.next();
+                            updateThis = false;
+                        }
                         if (thisFeature.index_ == otherFeature.index_) {
                             double diff = thisFeature.value_ - otherFeature.value_;
                             norm += diff*diff;
+                            updateThis = true;
+                            updateOther = true;
                             break;
                         } else if (thisFeature.index_ > otherFeature.index_) {
-                            updateThis = false;
-                            updateOther = false;
                             break;
                         } else {
                             norm += thisFeature.value_*thisFeature.value_;
-                            updateOther = false;
+                            updateThis = true;
                         }
                     }
                 } else if (otherFeature.index_ < thisFeature.index_) {
                     norm += otherFeature.value_*otherFeature.value_;
-                    while (otherIter.hasNext()) {
-                        otherFeature = otherIter.next();
+                    updateOther = true;
+                    while (otherIter.hasNext() || !updateOther) {
+                        if (updateOther) {
+                            otherFeature = otherIter.next();
+                            updateOther = false;
+                        }
                         if (thisFeature.index_ == otherFeature.index_) {
                             double diff = thisFeature.value_ - otherFeature.value_;
                             norm += diff*diff;
+                            updateOther = true;
+                            updateThis = true;
                             break;
                         } else if (thisFeature.index_ < otherFeature.index_) {
-                            updateOther = false;
-                            updateThis = false;
                             break;
                         } else {
                             norm += otherFeature.value_*otherFeature.value_;
-                            updateThis = false;
+                            updateOther = true;
                         }
                     }
                 }
@@ -129,16 +139,18 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
             while (thisIter.hasNext() || !updateThis) {
                 if (updateThis) {
                     thisFeature = thisIter.next();
+                    updateThis = false;
                 }
-                updateThis = true;
                 norm += thisFeature.value_*thisFeature.value_;
+                updateThis = true;
             }
             while (otherIter.hasNext() || !updateOther) {
                 if (updateOther) {
                     otherFeature = otherIter.next();
+                    updateOther = false;
                 }
-                updateOther = true;
                 norm += otherFeature.value_*otherFeature.value_;
+                updateOther = true;
             }
         }
         return Math.sqrt(norm);
