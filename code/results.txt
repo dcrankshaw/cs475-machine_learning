@@ -1,0 +1,23 @@
+bio
+VI: 0.634950    3
+
+finance
+VI: 1.384595    5
+
+nlp
+VI: 0.883344    11
+
+speech.mc
+VI: 1.650325    23
+
+speech
+VI: 2.849892    28
+
+easy
+VI: 3.663762    36
+
+hard
+VI: 0.691346    1
+
+vision
+1.382256        8

@@ -33,7 +33,7 @@ public class LambdaMeansPredictor extends Predictor {
         clusterMembers.put(1, new ArrayList<Instance>());
         if (lambda == 0.0) {
             lambda = defaultLambda(instances, meanVector);
-            System.out.println("lambda: " + lambda);
+            //System.out.println("lambda: " + lambda);
         }
 
         for (int i = 0; i < iterations; ++i) {
@@ -42,14 +42,14 @@ public class LambdaMeansPredictor extends Predictor {
         }
         // Don't need to keep entire training set in memory after done training
         clusterMembers.clear();
-        System.out.println("K: " + K);
-        int nonEmptyClusters = 0;
+        //System.out.println("K: " + K);
+        /*int nonEmptyClusters = 0;
         for (int clusterIndex = 1; clusterIndex <= K; ++clusterIndex) {
             if (!clusterVectors.get(clusterIndex).isEmpty()) {
                 nonEmptyClusters++;
             }
         }
-        System.out.println("Nonempty clusters: " + nonEmptyClusters);
+        System.out.println("Nonempty clusters: " + nonEmptyClusters);*/
     }
 
     // E Step
