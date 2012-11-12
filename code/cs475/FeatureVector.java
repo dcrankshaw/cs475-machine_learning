@@ -94,6 +94,7 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
                             break;
                         } else if (thisFeature.index_ > otherFeature.index_) {
                             updateThis = false;
+                            updateOther = false;
                             break;
                         } else {
                             norm += thisFeature.value_*thisFeature.value_;
@@ -109,6 +110,7 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
                             break;
                         } else if (thisFeature.index_ < otherFeature.index_) {
                             updateOther = false;
+                            updateThis = false;
                             break;
                         } else {
                             norm += otherFeature.value_*otherFeature.value_;
