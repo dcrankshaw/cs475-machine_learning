@@ -22,6 +22,10 @@ public class LambdaMeansPredictor extends Predictor {
 
         // Initialize
         FeatureVector meanVector = computeMeanVector(instances);
+        for (Feature f : meanVector) {
+            System.out.print(f + " ");
+        }
+        System.out.println();
         clusterVectors.add(meanVector);
         // Initialize empty member list for single initial cluster
         clusterMembers.add(new ArrayList<Instance>());
@@ -93,7 +97,8 @@ public class LambdaMeansPredictor extends Predictor {
         return dist / instances.size();
     }
 
-    private FeatureVector computeMeanVector(List<Instance> instances) {
+    //private FeatureVector computeMeanVector(List<Instance> instances) {
+    public static FeatureVector computeMeanVector(List<Instance> instances) {
         FeatureVector mean = new FeatureVector();
         if (instances.size() == 0) {
             return mean;
@@ -124,4 +129,5 @@ public class LambdaMeansPredictor extends Predictor {
         }
         return new ClassificationLabel(smallestCluster);
     }
+
 }

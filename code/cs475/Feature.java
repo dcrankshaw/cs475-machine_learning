@@ -22,4 +22,8 @@ public class Feature implements Comparable<Feature>, Serializable {
                 }
         }
 
+        public String toString() {
+            return index_ + ":" + value_;
+        }
+
 }
