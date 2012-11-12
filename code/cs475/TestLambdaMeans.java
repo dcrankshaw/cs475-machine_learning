@@ -7,10 +7,11 @@ public class TestLambdaMeans {
 
     public static void main(String[] args) throws IOException {
 
-        String path = "/home/crank/cs475-machine_learning/data/nlp.train";
+        /*String path = "/Users/Daniel/cs475-machine_learning/data/nlp.train";
         DataReader data_reader = new DataReader(path, true);
         List<Instance> instances = data_reader.readData();
         data_reader.close();
+        */
 
 
         FeatureVector aa = new FeatureVector();
@@ -34,6 +35,7 @@ public class TestLambdaMeans {
         System.out.println("bb to aa dist: " + bb.computeDistance(aa));
         System.out.println("Slow dist: " + slowComputeDistance(aa, bb));
 
+        /*
         boolean done = false;
 
         for (Instance a : instances) {
@@ -50,7 +52,7 @@ public class TestLambdaMeans {
             if (done) {
                 break;
             }
-        }
+        }*/
 
     }
 

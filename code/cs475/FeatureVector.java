@@ -65,7 +65,7 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
         return new FeatureVectorIterator();
     }
 
-    /*public double computeDistance(FeatureVector other) {
+    public double computeDistance(FeatureVector other) {
         double norm = 0;
         Iterator<Feature> thisIter = this.iterator();
         boolean updateThis = true;
@@ -86,13 +86,16 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
                 updateThis = true;
                 updateOther = true;
                 if (thisFeature.index_ == otherFeature.index_) {
+                    System.out.println("ThisFeature: " + thisFeature + " otherFeature: " + otherFeature);
                     double diff = thisFeature.value_ - otherFeature.value_;
                     norm += diff*diff;
                 } else if (thisFeature.index_ < otherFeature.index_) {
+                    System.out.println("ThisFeature: " + thisFeature);
                     norm += thisFeature.value_*thisFeature.value_;
                     while (thisIter.hasNext()) {
                         thisFeature = thisIter.next();
                         if (thisFeature.index_ == otherFeature.index_) {
+                            System.out.println("ThisFeature: " + thisFeature + " otherFeature: " + otherFeature);
                             double diff = thisFeature.value_ - otherFeature.value_;
                             norm += diff*diff;
                             break;
@@ -101,14 +104,18 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
                             updateOther = false;
                             break;
                         } else {
+                            System.out.println("ThisFeature: " + thisFeature);
                             norm += thisFeature.value_*thisFeature.value_;
+                            updateOther = false;
                         }
                     }
                 } else if (otherFeature.index_ < thisFeature.index_) {
                     norm += otherFeature.value_*otherFeature.value_;
+                    System.out.println("otherFeature: " + otherFeature);
                     while (otherIter.hasNext()) {
                         otherFeature = otherIter.next();
                         if (thisFeature.index_ == otherFeature.index_) {
+                            System.out.println("ThisFeature: " + thisFeature + " otherFeature: " + otherFeature);
                             double diff = thisFeature.value_ - otherFeature.value_;
                             norm += diff*diff;
                             break;
@@ -117,7 +124,9 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
                             updateThis = false;
                             break;
                         } else {
+                            System.out.println("otherFeature: " + otherFeature);
                             norm += otherFeature.value_*otherFeature.value_;
+                            updateThis = false;
                         }
                     }
                 }
@@ -129,6 +138,7 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
                     thisFeature = thisIter.next();
                 }
                 updateThis = true;
+                System.out.println("thisFeature: " + thisFeature);
                 norm += thisFeature.value_*thisFeature.value_;
             }
             while (otherIter.hasNext() || !updateOther) {
@@ -136,13 +146,15 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
                     otherFeature = otherIter.next();
                 }
                 updateOther = true;
+                System.out.println("otherFeature: " + otherFeature);
                 norm += otherFeature.value_*otherFeature.value_;
             }
         }
         return Math.sqrt(norm);
-    } */
+    }
 
 
+/*
     public double computeDistance(FeatureVector second) {
         int largest_index = this.dimensionality();
         if (second.dimensionality() > largest_index) {
@@ -159,7 +171,7 @@ public class FeatureVector implements Serializable, Iterable<Feature> {
             norm += diff*diff;
         }
         return Math.sqrt(norm);
-    }
+    }*/
 
 
     private class FeatureVectorIterator implements Iterator<Feature> {
