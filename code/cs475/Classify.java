@@ -214,11 +214,11 @@ public class Classify {
             List<Instance> instances, String predictions_file, boolean classification) throws IOException {
         PredictionsWriter writer = new PredictionsWriter(predictions_file);
         double testEvaluation;
-        if (classification) {
-            testEvaluation = AccuracyEvaluator.evaluateClassification(instances, predictor);
+        if (!classification) {
+            testEvaluation = AccuracyEvaluator.evaluateRegression(instances, predictor);
             System.out.println("Testing Evaluation: " + testEvaluation);
         } else if (!algorithm.equalsIgnoreCase("lambda_means")) {
-            testEvaluation = AccuracyEvaluator.evaluateRegression(instances, predictor);
+            testEvaluation = AccuracyEvaluator.evaluateClassification(instances, predictor);
             System.out.println("Testing Evaluation: " + testEvaluation);
         }
 

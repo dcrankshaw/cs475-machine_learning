@@ -11,8 +11,8 @@ public class TestLambdaMeans {
         for (int i = 0; i < 4; ++i) {
             aa.add(i, 4);
         }
-        for (int i = 3; i < 8; ++i) {
-            aa.add(i, 7);
+        for (int j = 3; j < 8; ++j) {
+            bb.add(j, 7);
         }
         System.out.println("aa to bb dist: " + aa.computeDistance(bb));
         System.out.println("bb to aa dist: " + bb.computeDistance(aa));
