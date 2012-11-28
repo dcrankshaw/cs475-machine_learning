@@ -1,0 +1,91 @@
+\documentclass[letterpaper,11pt]{article}
+\title{CS475 Machine Learning, Fall 2012: Homework 7}
+\date{}
+\author{\bf Daniel Crankshaw}
+
+
+\usepackage[margin=1in]{geometry}
+% \usepackage{hyperref}
+\usepackage[colorlinks]{hyperref}
+\usepackage{capt-of}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{bbm}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{url}
+\usepackage{wrapfig}
+\usepackage{hyperref} 
+\usepackage{color}
+\usepackage{amstext}
+\usepackage{enumerate}
+\usepackage{amsmath,bm}
+\usepackage{fullpage}
+    
+\renewcommand{\baselinestretch}{1.15}    
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Question 1:}
+\subparagraph{Bayesian Network}
+\begin{enumerate}[(a)]
+\item
+    {\bf A} and {\bf B} are d-separated in this example. The set of paths going through $x_5$ is blocked
+    by the tail to tail intersection at $x_5$, which is in set {\bf C}. The set of paths going through
+    $x_{14}$ is blocked by the head to tail intersection at $x_{14}$ because $x_{14}$ is in {\bf C}.
+\item
+    No the sets are not d-separated.
+\item
+    Yes. The sets are d-separated because every path between {\bf A} and {\bf B} must pass through
+    $x_{15}$ with a head to head intersection. And neither $x_{15}$ nor any of its descendants are
+    in {\bf C}, so that node blocks.
+\item
+    No. The sets are not d-separated. All the head to head intersections of the paths have $x_{15}$
+    as a descendant (or occur at $x_{15}$) and so none of those nodes block. And some of the paths
+    do not go through any other nodes in {\bf C} to meet any of the tail to tail or head to tail
+    blocking conditions.
+\end{enumerate}
+\subparagraph{Markov Random Field}
+\begin{enumerate}[(a)]
+\item
+    {\bf A} and {\bf B} are d-separated in this example because all paths must go through
+    $x_{5}$ or $x{14}$ which are in {\bf C} and thus blocked.
+\item
+    Yes the sets are d-separated because all paths must go through $x_{15}$ which is in set {\bf C}
+    and thus blocks all paths.
+\item
+    No because for example the path $x{4} -> x{6} -> x{11} -> x{15} -> x{12} -> x{8} -> x{5}$ contains
+    no nodes in {\bf C} and is therefore unblocked.
+\item
+    Yes the sets are d-separated because all paths must go through $x_{15}$ which is in set {\bf C}
+    and thus blocks all paths.
+\end{enumerate}
+
+\paragraph{Question 2:}
+    This question is essentially asking us for the Markov Blanket for node $x_2$. That is the set of nodes
+    \{ $x_5$ \}.
+
+\paragraph{Question 3:}
+
+
+\paragraph{Question 4:}
+\begin{enumerate}[(a)]
+\item
+\item
+\end{enumerate}
+
+\paragraph{Question 5:}
+\begin{enumerate}[(a)]
+\item
+\item
+\item
+\end{enumerate}
+
+\end{document}
+
