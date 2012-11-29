@@ -1,6 +1,5 @@
 package cs475.image_denoise;
 
-
 public class MRFImageProcessor {
     double eta_;
     double beta_;
@@ -193,7 +192,7 @@ public class MRFImageProcessor {
 
     private int findMinEnergyGrey(int ii, int jj, int[][] hidden_nodes, int[][] image, int maxColorVal, int[][] k_nodes) {
         double minEnergy = Float.MAX_VALUE;
-        int minColor = 0;
+        int minColor = -1;
         for (int color = 0; color <= maxColorVal; ++color) {
             double curEnergy = 0;
             if ((ii - 1) >= 0) {
