@@ -191,7 +191,7 @@ public class MRFImageProcessor {
     }
 
     private int findMinEnergyGrey(int ii, int jj, int[][] hidden_nodes, int[][] image, int maxColorVal, int[][] k_nodes) {
-        double minEnergy = Float.MAX_VALUE;
+        double minEnergy = Double.MAX_VALUE;
         int minColor = -1;
         for (int color = 0; color <= maxColorVal; ++color) {
             double curEnergy = 0;
@@ -208,11 +208,11 @@ public class MRFImageProcessor {
             if ((jj + 1) < hidden_nodes[0].length) {
                 curEnergy += potentialHiddenHidden(color, hidden_nodes[ii][jj+1], true); 
             }
-            curEnergy += potentialHiddenObserved(hidden_nodes[ii][jj], image[ii][jj], true);
+            curEnergy += potentialHiddenObserved(color, image[ii][jj], true);
             if (second_level_) {
                 int ki = ii / num_K_;
                 int kj = jj / num_K_;
-                curEnergy += potentialHiddenZ(hidden_nodes[ii][jj], k_nodes[ki][kj], true);
+                curEnergy += potentialHiddenZ(color, k_nodes[ki][kj], true);
             }
             if (minEnergy > curEnergy) {
                 minEnergy = curEnergy;
