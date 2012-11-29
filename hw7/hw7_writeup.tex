@@ -25,7 +25,7 @@
 \usepackage{enumerate}
 \usepackage{amsmath,bm}
 \usepackage{fullpage}
-    
+
 \renewcommand{\baselinestretch}{1.15}    
 
 \begin{document}
@@ -72,20 +72,48 @@
     \{ $x_5$ \}.
 
 \paragraph{Question 3:}
-
+    We can use the results from the textbook to write $P(X_i, X_j | X_b)$ where $X_b$ is the vector
+    $X$ except for $X_i$ and $X_j$. Using the notation of the book, let the vector $X_a = (X_i, X_j_)^T$.
+    Then, we can use equation 2.72 from the text to write the exponential term of the conditional probability
+    as $-\frac{1}{2} X_a^T \Lambda_{aa} X_a$. Now we substitue back in $X_i$ and $X_j$, and let
+    \begin{equation}
+        \Lambda_{aa} = \left( \begin{array}{ccc}
+            p & 0 \\
+            0 & q \end{array} \right)
+    \end{equation}
+    because from the problem statement we know that $\Omega_{ij}$ (which is equivalent to our $\Lambda$) is 0.
+    Therefore,
+    \begin{align}
+        P(X_i, X_j | X_b) & = k \exp{-\frac{1}{2} (X_i, X_j) \Lambda_{aa} (X_i, X_j)^T} & \text{where k is a normalization constant}\\
+                          & = k \exp{-\frac{1}{2} (p X_i^2 + q X_j^2) }\\
+                          & = k \exp{-\frac{1}{2} p X_i^2} \exp{-\frac{1}{2} q X_j^2 }\\
+                          & = P(X_i | X_b) P(X_j | X_b)
+    \end{align}
+    This proves that if $\Omega_{ij} = 0$ then $X_i$ and $X_j$ are conditionally independent.
 
 \paragraph{Question 4:}
-\begin{enumerate}[(a)]
-\item
-\item
-\end{enumerate}
-
+The data likelihood is given as
+\begin{align}
+P(Y_i,X_i) = \prod_{i=1}^n P(Y_i,X_i) = \prod_{i=1}^n \prod_{j=1}^m P(X_{ij}|Y_i)P(Y_i),
+\end{align}
+However, if we don't know $Y$, we can marginalize over Y to get
+\begin{align}
+    P(X_i) = \sum_{i = 0}^N \sum_{y} \prod_{a=1}^d \prod_{j=1}^m P(X_{dj}|y)P(y),
+\end{align}
+From there we can calculate the log likelihood as a function of our parameters $P(X_{ij} | y)$ and
+$P(y)$ as
+\begin{align}
+    L(\theta) = \sum_{i=1}^N log \left( \sum_{j=1}^K P(Y_j) \prod_{a=1}^D P(X_i^a | Y_j) \right)
+\end{align}
+where $N$ is the number of examples, $K$ is the number of possible labels, and $D$ is the number
+of features. The thought is that for the combination of supervised and unsupervised learning,
+we can just treat it as fully unsupervised learning for EM, and just fix the probabilities
+where we have labels. This would mean that for the E step, we would take derivatives of $L(\Theta)$
+with respect to each of our parameters and set that equal to $0$ and the solve for the parameter.
+However, I'm not totally sure how to solve those equations. For the M step, we take the updated parameters
+and relabel the data.
 \paragraph{Question 5:}
-\begin{enumerate}[(a)]
-\item
-\item
-\item
-\end{enumerate}
+No the Max Product algorithm cannot be applied because the factor graph has cycles. Observe
 
 \end{document}
 
