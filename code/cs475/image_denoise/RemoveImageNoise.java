@@ -22,19 +22,18 @@ public class RemoveImageNoise {
 
         String input_image = CommandLineUtilities.getOptionValue("input_image");
 
-        String input_image2 = null;
-        if (CommandLineUtilities.hasArg("input_image2"))
-            input_image2 = CommandLineUtilities.getOptionValue("input_image2");
-
         String output_image = CommandLineUtilities.getOptionValue("output_image");
         double eta = CommandLineUtilities.getOptionValueAsFloat("eta");
         double beta = CommandLineUtilities.getOptionValueAsFloat("beta");
         int num_iterations = CommandLineUtilities.getOptionValueAsInt("num_iterations");
-        int num_K = CommandLineUtilities.getOptionValueAsInt("num_K");
+        int num_K = 4;
 
         double omega = -1;
         if (CommandLineUtilities.hasArg("omega")) {
             omega = CommandLineUtilities.getOptionValueAsFloat("omega");
+        }
+        if (CommandLineUtilities.hasArg("num_K")) {
+            num_K = CommandLineUtilities.getOptionValueAsInt("num_K");
         }
 
         boolean use_second_level = CommandLineUtilities.hasArg("use_second_level");
@@ -44,31 +43,23 @@ public class RemoveImageNoise {
 
         int[][] image_array = ImageUtils.convertImageToIntArray(buffered_image);
 
-        int num_colors = ImageUtils.countColors(image_array, false);
-        System.out.println("Input has " + num_colors + " colors.");
+        //int num_colors = ImageUtils.countColors(image_array, false);
+        //System.out.println("Input has " + num_colors + " colors.");
 
         // Turn the colors into simple integers.
         HashMap<Integer, Integer> color_map = ImageUtils.createColorMap(image_array);
         int[][] encoded_image_array = ImageUtils.encodeImageArrayUsingColorMap(color_map, image_array);
 
-
-        int[][] encoded_image_array2 = null;
-        if (input_image2 != null) {
-            BufferedImage buffered_image2 = ImageUtils.loadImage(input_image2);
-            int[][] image_array2 = ImageUtils.convertImageToIntArray(buffered_image2);
-
-            int num_colors2 = ImageUtils.countColors(image_array2, false);
-            System.out.println("Input 2 has " + num_colors2 + " colors.");
-
-            // Turn the colors into simple integers.
-            encoded_image_array2 = ImageUtils.encodeImageArrayUsingColorMap(color_map, image_array2);			
-        }
-
-
         MRFImageProcessor mrf =
-            new MRFImageProcessor(eta, beta, omega, num_iterations, num_K, use_second_level);
+            new MRFImageProcessor(
+                    eta,
+                    beta,
+                    omega,
+                    num_iterations,
+                    num_K,
+                    use_second_level);
         int[][] denosified_image_array =
-            mrf.denoisifyImage(encoded_image_array, encoded_image_array2);
+            mrf.denoisifyImage(encoded_image_array);
 
         int[][] decoded_image_array = ImageUtils.decodeImageArrayUsingColorMap(color_map, denosified_image_array);
 
@@ -135,6 +126,8 @@ public class RemoveImageNoise {
         OptionBuilder
             .withDescription("The size K of the window for second level variables.");
         option = OptionBuilder.create("num_K");
+
+        options.add(option);
 
         OptionBuilder.withArgName("int");
         OptionBuilder.hasArg();

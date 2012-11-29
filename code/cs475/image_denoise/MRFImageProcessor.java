@@ -87,7 +87,7 @@ public class MRFImageProcessor {
     }
 
 
-    public int[][] denoisifyImage(int[][] image, int[][] IGNORE) {
+    public int[][] denoisifyImage(int[][] image) {
         boolean greyscale = (ImageUtils.countColors(image, false) > 2);
         int maxColorValue = ImageUtils.maxColor(image);
         int color1 = 0;
