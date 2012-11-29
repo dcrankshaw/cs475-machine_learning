@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/usr/bin/env bash
 
 # $1 is the input image
 # $2 is the clean image to compare it to
