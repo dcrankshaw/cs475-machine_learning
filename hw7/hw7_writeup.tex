@@ -73,7 +73,7 @@
 
 \paragraph{Question 3:}
     We can use the results from the textbook to write $P(X_i, X_j | X_b)$ where $X_b$ is the vector
-    $X$ except for $X_i$ and $X_j$. Using the notation of the book, let the vector $X_a = (X_i, X_j_)^T$.
+    $X$ except for $X_i$ and $X_j$. Using the notation of the book, let the vector $X_a = \left(X_i, X_j_ \right)^T$.
     Then, we can use equation 2.72 from the text to write the exponential term of the conditional probability
     as $-\frac{1}{2} X_a^T \Lambda_{aa} X_a$. Now we substitue back in $X_i$ and $X_j$, and let
     \begin{equation}
@@ -113,7 +113,25 @@ with respect to each of our parameters and set that equal to $0$ and the solve f
 However, I'm not totally sure how to solve those equations. For the M step, we take the updated parameters
 and relabel the data.
 \paragraph{Question 5:}
-No the Max Product algorithm cannot be applied because the factor graph has cycles. Observe
+No the Max Product algorithm cannot be applied because the factor graph has cycles. From the Viterbi algorithm
+we have equation 13.68
+\begin{equation}
+    \omega(z_{n+1}) = \log p(x_{n+1} | z_{n+1}) + max_{z_n} \{\log p(z_{n+1} | z_n) + \omega(z_n)\}
+\end{equation}
+The relevant part of this equation is the max function, which is where the recursion in this algorithm
+appears. We can ignore the $x$'s for now and we say that the $z$ nodes in our equation correspond to the
+x states in the graph. Notice that when evaluating $x_8$ in the graph, it will have to wait for
+$\omega(x_7)$ (where $\omega$ is the text's shorthand for the message $\mu_{f_n \leftarrow z_n} (z_n)$).
+But similarly, because of the cycle, when evaluating $x_7$, it will have to wait for $\omega(x_8)$. This
+will lead our algorithm into a sort of deadlock, where each node will be waiting on the other to finish
+it's message.
+
+One algorithm that can be used to compute the maximal assignment is Loopy Belief Propagation, an
+approximate algorithm. This essentially describes a message passing schedule such that a new message
+sent across a link (in the same direction) replaces all previous messages sent on that link. We then initiate each link
+to have some initial message that has already been sent, so that at the start of the algorithm every node
+can send a message, alleviating our deadlock problem. We then just set up a schedule for when nodes
+should send messages (some examples of these are described in the text on p.417-18).
 
 \end{document}
 
