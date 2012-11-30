@@ -1,0 +1,137 @@
+\documentclass[letterpaper,11pt]{article}
+\title{CS475 Machine Learning, Fall 2012: Homework 7}
+\date{}
+\author{\bf Daniel Crankshaw}
+
+
+\usepackage[margin=1in]{geometry}
+% \usepackage{hyperref}
+\usepackage[colorlinks]{hyperref}
+\usepackage{capt-of}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{bbm}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{url}
+\usepackage{wrapfig}
+\usepackage{hyperref} 
+\usepackage{color}
+\usepackage{amstext}
+\usepackage{enumerate}
+\usepackage{amsmath,bm}
+\usepackage{fullpage}
+
+\renewcommand{\baselinestretch}{1.15}    
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Question 1:}
+\subparagraph{Bayesian Network}
+\begin{enumerate}[(a)]
+\item
+    {\bf A} and {\bf B} are d-separated in this example. The set of paths going through $x_5$ is blocked
+    by the tail to tail intersection at $x_5$, which is in set {\bf C}. The set of paths going through
+    $x_{14}$ is blocked by the head to tail intersection at $x_{14}$ because $x_{14}$ is in {\bf C}.
+\item
+    No the sets are not d-separated.
+\item
+    Yes. The sets are d-separated because every path between {\bf A} and {\bf B} must pass through
+    $x_{15}$ with a head to head intersection. And neither $x_{15}$ nor any of its descendants are
+    in {\bf C}, so that node blocks.
+\item
+    No. The sets are not d-separated. All the head to head intersections of the paths have $x_{15}$
+    as a descendant (or occur at $x_{15}$) and so none of those nodes block. And some of the paths
+    do not go through any other nodes in {\bf C} to meet any of the tail to tail or head to tail
+    blocking conditions.
+\end{enumerate}
+\subparagraph{Markov Random Field}
+\begin{enumerate}[(a)]
+\item
+    {\bf A} and {\bf B} are d-separated in this example because all paths must go through
+    $x_{5}$ or $x{14}$ which are in {\bf C} and thus blocked.
+\item
+    Yes the sets are d-separated because all paths must go through $x_{15}$ which is in set {\bf C}
+    and thus blocks all paths.
+\item
+    No because for example the path $x{4} -> x{6} -> x{11} -> x{15} -> x{12} -> x{8} -> x{5}$ contains
+    no nodes in {\bf C} and is therefore unblocked.
+\item
+    Yes the sets are d-separated because all paths must go through $x_{15}$ which is in set {\bf C}
+    and thus blocks all paths.
+\end{enumerate}
+
+\paragraph{Question 2:}
+    This question is essentially asking us for the Markov Blanket for node $x_2$. That is the set of nodes
+    \{ $x_5$ \}.
+
+\paragraph{Question 3:}
+    We can use the results from the textbook to write $P(X_i, X_j | X_b)$ where $X_b$ is the vector
+    $X$ except for $X_i$ and $X_j$. Using the notation of the book, let the vector $X_a = \left(X_i, X_j_ \right)^T$.
+    Then, we can use equation 2.72 from the text to write the exponential term of the conditional probability
+    as $-\frac{1}{2} X_a^T \Lambda_{aa} X_a$. Now we substitue back in $X_i$ and $X_j$, and let
+    \begin{equation}
+        \Lambda_{aa} = \left( \begin{array}{ccc}
+            p & 0 \\
+            0 & q \end{array} \right)
+    \end{equation}
+    because from the problem statement we know that $\Omega_{ij}$ (which is equivalent to our $\Lambda$) is 0.
+    Therefore,
+    \begin{align}
+        P(X_i, X_j | X_b) & = k \exp{-\frac{1}{2} (X_i, X_j) \Lambda_{aa} (X_i, X_j)^T} & \text{where k is a normalization constant}\\
+                          & = k \exp{-\frac{1}{2} (p X_i^2 + q X_j^2) }\\
+                          & = k \exp{-\frac{1}{2} p X_i^2} \exp{-\frac{1}{2} q X_j^2 }\\
+                          & = P(X_i | X_b) P(X_j | X_b)
+    \end{align}
+    This proves that if $\Omega_{ij} = 0$ then $X_i$ and $X_j$ are conditionally independent.
+
+\paragraph{Question 4:}
+The data likelihood is given as
+\begin{align}
+P(Y_i,X_i) = \prod_{i=1}^n P(Y_i,X_i) = \prod_{i=1}^n \prod_{j=1}^m P(X_{ij}|Y_i)P(Y_i),
+\end{align}
+However, if we don't know $Y$, we can marginalize over Y to get
+\begin{align}
+    P(X_i) = \sum_{i = 0}^N \sum_{y} \prod_{a=1}^d \prod_{j=1}^m P(X_{dj}|y)P(y),
+\end{align}
+From there we can calculate the log likelihood as a function of our parameters $P(X_{ij} | y)$ and
+$P(y)$ as
+\begin{align}
+    L(\theta) = \sum_{i=1}^N log \left( \sum_{j=1}^K P(Y_j) \prod_{a=1}^D P(X_i^a | Y_j) \right)
+\end{align}
+where $N$ is the number of examples, $K$ is the number of possible labels, and $D$ is the number
+of features. The thought is that for the combination of supervised and unsupervised learning,
+we can just treat it as fully unsupervised learning for EM, and just fix the probabilities
+where we have labels. This would mean that for the E step, we would take derivatives of $L(\Theta)$
+with respect to each of our parameters and set that equal to $0$ and the solve for the parameter.
+However, I'm not totally sure how to solve those equations. For the M step, we take the updated parameters
+and relabel the data.
+\paragraph{Question 5:}
+No the Max Product algorithm cannot be applied because the factor graph has cycles. From the Viterbi algorithm
+we have equation 13.68
+\begin{equation}
+    \omega(z_{n+1}) = \log p(x_{n+1} | z_{n+1}) + max_{z_n} \{\log p(z_{n+1} | z_n) + \omega(z_n)\}
+\end{equation}
+The relevant part of this equation is the max function, which is where the recursion in this algorithm
+appears. We can ignore the $x$'s for now and we say that the $z$ nodes in our equation correspond to the
+x states in the graph. Notice that when evaluating $x_8$ in the graph, it will have to wait for
+$\omega(x_7)$ (where $\omega$ is the text's shorthand for the message $\mu_{f_n \leftarrow z_n} (z_n)$).
+But similarly, because of the cycle, when evaluating $x_7$, it will have to wait for $\omega(x_8)$. This
+will lead our algorithm into a sort of deadlock, where each node will be waiting on the other to finish
+it's message.
+
+One algorithm that can be used to compute the maximal assignment is Loopy Belief Propagation, an
+approximate algorithm. This essentially describes a message passing schedule such that a new message
+sent across a link (in the same direction) replaces all previous messages sent on that link. We then initiate each link
+to have some initial message that has already been sent, so that at the start of the algorithm every node
+can send a message, alleviating our deadlock problem. We then just set up a schedule for when nodes
+should send messages (some examples of these are described in the text on p.417-18).
+
+\end{document}
+
