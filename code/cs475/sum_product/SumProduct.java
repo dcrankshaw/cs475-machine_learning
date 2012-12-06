@@ -17,10 +17,10 @@ public class SumProduct {
         for (int xs = 1; xs <= potentials.numXValues(); ++xs) {
             double prod = potentials.potential(x_i, xs);
             if (x_i > 1) {
-                prod *= messageFactorToVariable(-1, x_i, xs);
+                prod *= messageFactorToVariableDown(x_i, xs);
             }
             if (x_i < potentials.chainLength()) {
-                prod *= messageFactorToVariable(1, x_i, xs);
+                prod *= messageFactorToVariableUp(x_i, xs);
             }
             marginals[xs] = prod;
         }
@@ -34,37 +34,44 @@ public class SumProduct {
         return marginals;
     }
 
-    /**
-     * @param increment +1 or -1 depending on whether we are going up or
-     * down the chain
-     */
-    public double messageVariableToFactor(int increment, int index, int x) {
-        double prod = potentials.potential(index, x);
-        if (index == 1 || index == potentials.chainLength()) {
-            return prod;
-        } else {
-            prod *= messageFactorToVariable(increment, index, x);
-        }
-        return prod;
-    }
-
-    /**
-     * @param increment +1 or -1 depending on whether we are going up or
-     * down the chain
-     */
-    private double messageFactorToVariable(int increment, int index, int x) {
+    private double messageFactorToVariableUp(int leftIndex, int x) {
         double sum = 0;
-        int binaryFactorIndex = potentials.chainLength() + index;
-        if (increment < 0) {
-            binaryFactorIndex -= 1;
-            //System.out.println("going down chain.");
-        }
+        int binaryFactorIndex = potentials.chainLength() + leftIndex;
         for (int xs = 1; xs <= this.potentials.numXValues(); ++xs) {
-            sum += messageVariableToFactor(increment, index+increment, xs)*potentials.potential(binaryFactorIndex, x, xs);
+            sum += messageVariableToFactorUp(leftIndex + 1, xs)*potentials.potential(binaryFactorIndex, x, xs);
         }
         return sum;
     }
 
+    public double messageVariableToFactorUp(int index, int x) {
+        double prod = potentials.potential(index, x);
+        if (index == potentials.chainLength()) {
+            return prod;
+        } else {
+            prod *= messageFactorToVariableUp(index, x);
+        }
+        return prod;
+    }
+
+
+    private double messageFactorToVariableDown(int rightIndex, int x) {
+        double sum = 0;
+        int binaryFactorIndex = potentials.chainLength() + rightIndex - 1;
+        for (int xs = 1; xs <= this.potentials.numXValues(); ++xs) {
+            sum += messageVariableToFactorDown(rightIndex - 1, xs)*potentials.potential(binaryFactorIndex, xs, x);
+        }
+        return sum;
+    }
+
+    public double messageVariableToFactorDown(int index, int x) {
+        double prod = potentials.potential(index, x);
+        if (index == 1) {
+            return prod;
+        } else {
+            prod *= messageFactorToVariableDown(index, x);
+        }
+        return prod;
+    }
 
 }
 
