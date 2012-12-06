@@ -38,12 +38,12 @@ public class SumProduct {
      * @param increment +1 or -1 depending on whether we are going up or
      * down the chain
      */
-    public double messageVariableToFactor(int increment, int x, int index) {
+    public double messageVariableToFactor(int increment, int index, int x) {
         double prod = potentials.potential(index, x);
         if (index == 1 || index == potentials.chainLength()) {
             return prod;
         } else {
-            prod *= messageFactorToVariable(increment, index + increment, x);
+            prod *= messageFactorToVariable(increment, index, x);
         }
         return prod;
     }
@@ -57,9 +57,10 @@ public class SumProduct {
         int binaryFactorIndex = potentials.chainLength() + index;
         if (increment < 0) {
             binaryFactorIndex -= 1;
+            //System.out.println("going down chain.");
         }
         for (int xs = 1; xs <= this.potentials.numXValues(); ++xs) {
-            sum += messageVariableToFactor(increment, xs, index+increment)*potentials.potential(binaryFactorIndex, x, xs);
+            sum += messageVariableToFactor(increment, index+increment, xs)*potentials.potential(binaryFactorIndex, x, xs);
         }
         return sum;
     }
