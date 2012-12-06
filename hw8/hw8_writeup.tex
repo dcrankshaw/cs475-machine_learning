@@ -1,0 +1,85 @@
+\documentclass[letterpaper,11pt]{article}
+\title{CS475 Machine Learning, Fall 2012: Homework 8}
+\date{}
+\author{\bf Daniel Crankshaw - dcranks1}
+
+
+\usepackage[margin=1in]{geometry}
+% \usepackage{hyperref}
+\usepackage[colorlinks]{hyperref}
+\usepackage{capt-of}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{bbm}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{url}
+\usepackage{wrapfig}
+\usepackage{hyperref} 
+\usepackage{color}
+\usepackage{amstext}
+\usepackage{enumerate}
+\usepackage{amsmath,bm}
+\usepackage{fullpage}
+    
+\renewcommand{\baselinestretch}{1.15}    
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Question 1:}
+The probability distribution of $P(x_m)$ can be found by raising $T^{m-1}$ and then looking
+at the top row of the resulting matrix (because we are told that we observe $x_1 = s_1$).
+If we let $A = T^{m-1}$, then $P(x_m = s_j) = A_{1j}$. This approach works similarly if the
+first observed state is $s_i$, in which case we would look at the $i$th row oof $A$.
+
+\paragraph{Question 2:}
+\subparagraph{}
+The only difference in the graphical models of the Gaussian Hidden Markov Model and the
+Gaussian Mixture is that the GHMM has edges between it's hidden variables and the
+Gaussian Mixture does not. These edges are represented as the transition probabilities.
+Therefore, when we marginalize over the transition probabilities because we are marginalizing
+over the possible states of the hidden variables, we remove those edges between the hidden
+variables, removing the local influence neighboring nodes have, and we end up with exactly
+a Gaussian Mixture Model.
+
+\subparagraph{}
+The difference between fitting Gaussian Mixture Models and Gaussian HMMs is that
+GHMMs allow the preceding hidden state to influence what the next hidden state should
+be, whereas each output of the Gaussian HMM is independent from any previous outputs.
+Fitting a GHMM to data output by a GHMM will probably provide better results than
+fitting a Gaussian Mixture to data output by a GHMM.
+
+
+\paragraph{Question 3:}
+\begin{enumerate}[1.]
+\item
+    An experiment you can run to determine whether your problem is bias or variance
+    is to compare training accuracy and test accuracy
+    by plotting accuracy vs number of training examples or iterations.
+\item
+    If the training accuracy is much higher than the test accuracy, or if you
+    have really high training accuracy but your test accuracy hasn't leveled
+    off (meaning you don't have enough data) then you know your problem is
+    high variance, because your model is very data set dependent and you've
+    overfit your training data. If your training and test accuracies are similar,
+    but both low, then you know you have too much bias.
+
+\item
+    One fix to your model if you have high variance is to add more training
+    data. The idea is that the more data you train a model on, the harder it
+    is to overfit all of the data.
+
+\item
+    If you have high bias, you can try dimensionality reduction or select
+    new features that serve as better indicators of your dataset.
+
+\end{enumerate}
+
+\end{document}
+
